@@ -1,2 +1,418 @@
-# TRRetroGame
-Testing vibe code of a TR retro 8-bit game style of Theodore Roosevelt's life
+# Rough Rider — The Theodore Roosevelt Adventure
+
+A web-based, Nintendo-style game that tells the **entire life of Theodore
+Roosevelt** (1858–1919) across **10 chapters**. Each chapter is a Mario/Zelda-style
+2D platformer played over an AI-rendered painted backdrop, ends in its own
+**mini-game**, and then pauses on a **learning recap** of the history you found.
+
+Built for the **Theodore Roosevelt Presidential Library**. All historical content
+is drawn from the Library's `Book_Text` collection, with dates and quotations
+verified against the source texts. The game is family-friendly and intended for
+education and fun.
+
+---
+
+## Table of contents
+
+1. [Quick start](#quick-start)
+2. [Controls](#controls)
+3. [How the game is structured](#how-the-game-is-structured)
+4. [The 10 chapters](#the-10-chapters)
+5. [Fact achievements by level](#fact-achievements-by-level)
+6. [Enemies by level](#enemies-by-level)
+7. [Graphics & audio](#graphics--audio)
+8. [Project layout](#project-layout)
+9. [Code architecture](#code-architecture)
+10. [Working on the game](#working-on-the-game)
+11. [Backgrounds & regenerating art](#backgrounds--regenerating-art)
+12. [Historical sourcing](#historical-sourcing)
+13. [Known limitations & ideas](#known-limitations--ideas)
+
+---
+
+## Quick start
+
+No installation, build step, or internet connection is required.
+
+1. Open the project folder and **double-click `index.html`** — it runs in any
+   modern browser (Chrome, Edge, Safari, Firefox).
+2. **Click the game canvas once** so it can capture the keyboard and start audio
+   (browsers block sound until the first interaction).
+3. Press **ENTER** to begin. Press **C** at the title screen for Chapter Select.
+
+> Tip: press **F** for fullscreen and **M** to mute/unmute at any time.
+
+If you prefer to serve it over `http://` (some browsers are stricter about
+loading images from `file://`), any static server works, e.g. from the project
+folder: `python3 -m http.server` then open `http://localhost:8000`. The game also
+runs fine straight from `file://` — if a background image is ever blocked, it
+falls back to procedurally drawn scenery automatically.
+
+---
+
+## Controls
+
+**Title / menus**
+
+| Key | Action |
+|-----|--------|
+| `ENTER` | Start / confirm |
+| `C` | Open Chapter Select (from the title) |
+| `← → ↑ ↓` | Move the selection in Chapter Select |
+| `ESC` | Back to title |
+| `F` | Toggle fullscreen |
+| `M` | Toggle mute |
+
+**Platformer levels**
+
+| Key | Action |
+|-----|--------|
+| `← / →` | Run left / right |
+| `SPACE` or `↑` | Jump — press **twice** for a **double-jump** |
+| (land on a foe) | Stomp it to defeat it |
+| `ESC` | Return to the title |
+
+Each mini-game shows its own controls on an intro card **and** along the bottom
+of the screen while you play. The per-game keys are listed in
+[The 10 chapters](#the-10-chapters).
+
+---
+
+## How the game is structured
+
+A full chapter plays out as a short loop of five screens:
+
+1. **Cutscene** — a portrait of TR at the right age, a paragraph of biography,
+   plus a **YOUR OBJECTIVE** block and a **WATCH OUT FOR** block naming that
+   chapter's enemies.
+2. **Platformer level** — run and jump across ground and floating platforms,
+   leap over pits, stomp era-appropriate foes, collect **◉ coins**, and open
+   glowing **★ treasure chests** (each reveals one real TR fact). Reach the flag.
+   You have 3 hearts.
+3. **Mini-game intro card** — the goal and the exact keys to press.
+4. **Mini-game** — a unique skill challenge themed to the chapter.
+5. **Learning recap** — after you win, the game **pauses** on a study screen
+   listing everything Theodore did in that period, marking which history
+   treasures you **collected (✓)** and which you **missed (✗)**. Press `ENTER`
+   when you're ready to continue.
+
+After the final chapter the game closes on a legacy screen featuring TR's
+verbatim **"Man in the Arena"** passage.
+
+---
+
+## The 10 chapters
+
+| # | Years | Chapter | Mini-game | Mini-game keys |
+|---|-------|---------|-----------|----------------|
+| 1 | 1858–1876 | A Sickly Boy in New York | **Make Your Body** (rhythm lifting) | `SPACE` in time with the ring |
+| 2 | 1876–1882 | Harvard & the Boxing Ring | **Harvard Boxing Match** | `← →` bob/dodge · `J` jab · `K` cross |
+| 3 | 1884–1886 | Into the Dakota Badlands | **Capture the Boat Thieves** | `← →` steer · hold `SPACE` to paddle |
+| 4 | 1895–1897 | Cleaning Up the NYPD | **The Midnight Ramble** | arrows move · `SPACE` lantern |
+| 5 | 1897–1898 | Assistant Secretary of the Navy | **Naval Gunnery Drill** | `↑ ↓` aim · `SPACE` fire |
+| 6 | 1898 | The Rough Riders | **Charge Up Kettle Hill** | `SPACE`/`↑` jump (double-jump) |
+| 7 | 1898–1901 | Governor to the White House | **The Telegraph Race** | press the shown **letter keys** |
+| 8 | 1901–1909 | The Bully Pulpit | **Big Stick: Bust the Trusts** | `← →` lane · `SPACE` swing |
+| 9 | 1903–1909 | Conservation & Yosemite | **Protect the Wild** | `← →` move · `SPACE` ward off threat |
+| 10 | 1909–1914 | Safari, the Amazon & the Last Fight | **The River of Doubt** | `← →` steer · `SPACE` paddle hard |
+
+TR visibly **ages and changes costume** through these chapters: a big-headed boy
+→ a Harvard student → a Dakota cowboy → a police commissioner → a naval officer
+→ a Rough Rider → the President → a Yosemite naturalist → an aged Amazon explorer.
+
+---
+
+## Fact achievements by level
+
+Each chapter hides **four ★ history treasures** in its platformer level. Opening
+one pops a "HISTORY UNLOCKED" card with a real fact from Theodore Roosevelt's
+life, and the end-of-level recap screen tallies which you found (✓) and which you
+missed (✗). The facts are listed below in the order they appear (chronologically
+within each chapter).
+
+### Chapter 1 — A Sickly Boy in New York (1858–1876)
+1. Born in NYC, October 27, 1858
+2. Suffered severe childhood asthma
+3. Bullied on a stagecoach at age 13
+4. Took up boxing & weightlifting to grow strong
+
+### Chapter 2 — Harvard & the Boxing Ring (1876–1882)
+1. Entered Harvard in 1876
+2. Boxed in the lightweight division
+3. Married Alice Hathaway Lee, 1880
+4. Elected to the NY Assembly at 23, 1881
+
+### Chapter 3 — Into the Dakota Badlands (1884–1886)
+1. Lost his wife & mother, Feb 14, 1884
+2. Ranched the Elkhorn in Dakota Territory
+3. Faced down the "Four Eyes" saloon bully
+4. Captured boat thieves on the river, 1886
+
+### Chapter 4 — Cleaning Up the NYPD (1895–1897)
+1. Named Police Commissioner, 1895
+2. Walked "midnight rambles" after dark
+3. Caught officers shirking their duty
+4. Broke Tammany bribery & graft
+
+### Chapter 5 — Assistant Secretary of the Navy (1897–1898)
+1. Assistant Secretary of the Navy, 1897
+2. Drilled the fleet to readiness
+3. "Speak softly and carry a big stick"
+4. Resigned to enlist for Cuba
+
+### Chapter 6 — The Rough Riders (1898)
+1. Raised the volunteer Rough Riders
+2. Sailed to Cuba, June 1898
+3. Charged Kettle Hill, July 1, 1898
+4. Came home a national hero
+
+### Chapter 7 — Governor to the White House (1898–1901)
+1. Elected Governor of New York, 1898
+2. Elected Vice President, 1900
+3. McKinley assassinated, September 1901
+4. Became President at 42 — the youngest ever
+
+### Chapter 8 — The Bully Pulpit (1901–1909)
+1. Took office as President, 1901
+2. Busted the Northern Securities trust, 1902
+3. Settled the coal strike — a "Square Deal"
+4. Won the Nobel Peace Prize, 1906
+
+### Chapter 9 — Conservation & Yosemite (1903–1909)
+1. Camped Yosemite with John Muir, 1903
+2. Created 5 national parks
+3. Signed the Antiquities Act, 1906
+4. Protected ~230 million acres of land
+
+### Chapter 10 — Safari, the Amazon & the Last Fight (1909–1914)
+1. African safari for the Smithsonian, 1909
+2. Ran as "Bull Moose" — shot in 1912, finished his speech
+3. Mapped Brazil's River of Doubt, 1913–14
+4. His last great adventure, dared to the end
+
+> All 40 facts are also defined in `js/data.js` (each chapter's `facts[]` array),
+> so editing them there updates both the in-game treasures and this list's source.
+
+---
+
+## Enemies by level
+
+Every chapter's foes are matched to its time and place (researched from the source
+texts) and drawn as detailed, cel-shaded sprites. Each level has a **primary**
+enemy and a **secondary** enemy; in play, roughly every third foe is the secondary
+type. Stomp a foe from above (Mario-style) to defeat it; touching one from the side
+costs a heart. In **Conservation**, the "wildlife" are friendly — see the note.
+
+| # | Chapter | Primary enemy | Secondary enemy | Why these foes |
+|---|---------|---------------|-----------------|----------------|
+| 1 | A Sickly Boy in New York | **Bully** — a bigger boy in a flat cap with fists up | **Alley cat** — a stray of the 1860s streets | TR was manhandled by bullies on a stagecoach at 13, the spark that made him build his body |
+| 2 | Harvard & the Boxing Ring | **Yale rival** — a rival boxer in a dark turtleneck | **Bulldog** — the rival school's mascot | His college years were defined by competitive boxing and athletic rivalry |
+| 3 | Into the Dakota Badlands | **Rattlesnake** — a coiled prairie rattler | **Saloon tough** — the brute who jeered "Four Eyes" | The Badlands frontier and the famous saloon confrontation |
+| 4 | Cleaning Up the NYPD | **Grafter** — a corrupt Tammany man with a bribe | **Alley cat** — the strays of the midnight beat | His war on police corruption and Tammany Hall graft |
+| 5 | Assistant Secretary of the Navy | **Wharf rat** — a dockside rat | **Gull** — a screeching harbor gull (flies) | Set around the Navy yard and harbor |
+| 6 | The Rough Riders | **Spanish soldier** — a kepi-wearing rifleman | **Mosquito** — a yellow-fever carrier (flies) | The Cuban campaign, where disease killed more men than battle |
+| 7 | Governor to the White House | **Machine boss** — a fat-cat in a top hat with a cigar | **Red tape** — a bundle of bureaucratic paperwork | His climb through machine politics and government bureaucracy |
+| 8 | The Bully Pulpit | **Trust** — a monopoly money-bag in a top hat | **Machine boss** — the political fixer who shields them | His trust-busting fight against monopolies |
+| 9 | Conservation & Yosemite | **Poacher** — a rifle-toting hunter | **Logger** — a lumberjack with an axe | The threats to the wild lands and wildlife he set out to protect |
+| 10 | Safari, the Amazon & the Last Fight | **Piranha** — a leaping river fish (flies/jumps) | **Jaguar** — a crouching jungle cat | The deadly wildlife of the River of Doubt expedition |
+
+**Flyers** (gull, mosquito, piranha) hover and bob at head height instead of
+walking the ground. In **Chapter 9 (Conservation)** the level's poachers and
+loggers are the enemies, but its *mini-game* also features **deer and bears** you
+must **spare** (marked with a ♥) — scaring the wildlife counts against you.
+
+> Enemy keys live in `js/data.js` as each chapter's `enemy` / `enemy2` fields, and
+> the matching sprite art is the big `switch (kind)` in `drawFoe` (`js/game.js`).
+> To change a foe, point the data key at a different sprite case.
+
+---
+
+## Graphics & audio
+
+**Backgrounds** are AI-rendered painted scene images (`assets/bg/*.png`, ~1365×768)
+loaded at startup and panned with parallax. If an image fails to load, the engine
+falls back to procedurally drawn scenery so the game always runs.
+
+**Characters and sprites** are drawn entirely in code on an HTML5 canvas in an
+**anime / Japanimation** style — large expressive eyes, clean dark outlines,
+two-tone cel shading, and a rim light. Roosevelt has distinct **walk** and **run**
+animation cycles (bent knees, arm pump, forward lean) and turns cleanly to face
+left or right. Mini-game props (battleships, the deck gun, cannon shells, bullets,
+boulders, ice floes, money-bag trusts, telegraph key, wildlife, etc.) are drawn to
+the same detailed, shaded standard.
+
+**Audio** is fully synthesized at runtime with the Web Audio API — there are no
+audio files. Music is a small set of looping chiptune themes selected per chapter,
+and sound effects (jump, coin, hit, punch, cannon, success, fail) are generated on
+the fly. Everything is portable: copy the folder and it works.
+
+---
+
+## Project layout
+
+```
+TRRetroGame/
+├── index.html              ← open this to play
+├── README.md               ← this file
+├── css/
+│   └── style.css           ← page frame, canvas sizing, fullscreen styling
+├── assets/
+│   └── bg/
+│       ├── ch1_nyc.png … ch9_amazon.png   ← 9 chapter backdrops
+│       ├── ch_town.png                    ← Bully Pulpit Main Street backdrop
+│       └── GEMINI_PROMPTS.md              ← prompts to regenerate any backdrop
+└── js/
+    ├── data.js             ← all 10 chapters: text, dates, facts, costumes,
+    │                          ages, enemies, objectives, mini-game configs, quotes
+    ├── assets.js           ← background-image loader with graceful fallback
+    ├── audio.js            ← Web Audio synth: music themes + SFX
+    ├── sprites.js          ← anime TR (ages/outfits, walk/run) + scenery +
+    │                          the background compositor (Art.*)
+    ├── minigames.js        ← the 10 mini-game classes + shared detailed props
+    └── game.js             ← engine: loop, input, state machine, platformer
+                               levels, enemy sprites, HUD, menus, recap screen
+```
+
+Scripts load in this order from `index.html`:
+`data.js → assets.js → audio.js → sprites.js → minigames.js → game.js`.
+
+---
+
+## Code architecture
+
+The game is plain ES (no framework, no bundler). Each file owns one concern.
+
+### `data.js` — content
+Exports two globals: `TR_QUOTES` and `CHAPTERS` (an array of 10 chapter objects).
+Each chapter carries:
+
+- `id`, `years`, `title`, `subtitle`, `place`, `blurb`
+- `bg` — background filename in `assets/bg/`
+- `scenery` — procedural fallback key (used only if the image fails to load)
+- `age` — life stage: `child | teen | adult | mature | elder`
+- `costume` — outfit key (see `sprites.js` `COSTUMES`)
+- `enemy` / `enemy2` — era-correct foe keys (see `drawFoe` in `game.js`)
+- `foes` / `objective` — the text shown on the cutscene intro
+- `facts[]` — four chronological facts, surfaced as collectible ★ treasures
+- `minigame` — `{ type, name, goal, controls, win }`
+
+To tune content you usually only edit this file.
+
+### `sprites.js` — `Art.*`
+A self-contained module exposing:
+
+- `Art.drawTR(ctx, x, y, height, opts)` — draws Roosevelt. `opts` includes
+  `costume`, `age`, `state` (`idle | walk | run | jump | punch | paddle | swing |
+  hat`), `t` (animation clock), and `face` (`1` right / `-1` left). `COSTUMES`
+  and `AGE` tables drive proportions, outfit colors, hats, and features
+  (mustache, gray hair, pince-nez).
+- `Art.Particles` — a tiny particle system used for coins, hits, sparks.
+- `Art.scenery` — procedural fallback painters keyed by `scenery`.
+- `Art.drawBackground(ctx, chId, sceneryKey, W, H, cam, pal, t)` — draws the AI
+  PNG with a parallax pan, or the procedural fallback if it isn't loaded.
+- helpers: `Art.rr` (rounded rect), `Art.shade` (lighten/darken a hex color).
+
+### `minigames.js` — the challenges
+Ten classes (`MGBody`, `MGBox`, `MGRiver`, `MGPatrol`, `MGGun`, `MGCharge`,
+`MGTele`, `MGStick`, `MGConserve`, `MGRapids`) registered in the `MINIGAMES` map
+by `type`. Each implements the same contract:
+
+```js
+class MGExample {
+  constructor(env) { /* env = { W, H, particles, rng } */ this.status = "play"; }
+  update(input)    { /* input.down(code), input.pressed(code); set this.status */ }
+  draw(ctx, t)     { /* render the whole screen */ }
+}
+// status transitions to "won" or "lost"; this.progress (0..1) feeds the HUD bar.
+```
+
+This file also defines shared **detailed prop painters** reused across games:
+`pBattleship`, `pDeckGun`, `pShell`, `pSplash`, `pBullet`, `pCannonball`,
+`pBoulder`, `pIce`, `pBarbwire`, `pShirker`, `pTrust`, `pCitizen`.
+
+### `game.js` — the engine
+A single IIFE that owns the canvas, input, and a state machine:
+`MENU → SELECT → CUTSCENE → LEVEL → MGINTRO → MG → RECAP → WIN → (next) / END`.
+It builds each platformer level procedurally (`buildLevel`), runs physics and
+collision (`updateLevel`), renders the world and HUD (`drawLevel`), draws the
+era-correct enemies (`drawFoe`), and handles the cutscene, intro, recap, win/lose,
+and ending screens. The main `frame()` loop clears the canvas every frame, then
+dispatches on the current state.
+
+### `audio.js` — `Audio2.*`
+`Audio2.resume()`, `Audio2.playMusic(name)`, `Audio2.stopMusic()`,
+`Audio2.toggleMute()`, and `Audio2.sfx.*` (jump, land, coin, hit, punch, shoot,
+success, fail, select, powerup, paddle, type). All synthesized.
+
+### `assets.js` — `Assets.*`
+`Assets.load()` kicks off loading every chapter's background image;
+`Assets.getBG(id)` returns the `Image` once ready (or `null`), which
+`Art.drawBackground` uses to decide between the photo and the procedural fallback.
+
+---
+
+## Working on the game
+
+There's no build. Edit a `.js` file and refresh the browser.
+
+**Common tasks**
+
+- *Change a fact, blurb, or objective* → edit the chapter in `data.js`.
+- *Add/adjust an enemy* → add a `case` in `drawFoe` (`game.js`) and reference its
+  key via `enemy`/`enemy2` in `data.js`.
+- *Tune a mini-game's difficulty* → edit its class constructor (e.g. `goal`,
+  `time`, spawn rates) in `minigames.js`.
+- *Adjust an outfit or add a costume* → edit the `COSTUMES`/`AGE` tables in
+  `sprites.js`.
+- *Swap a backdrop* → drop a new PNG into `assets/bg/` with the same filename.
+
+**Syntax-checking** (no runtime needed): `node --check js/<file>.js`.
+
+**Headless smoke test:** the engine and all ten mini-games can be exercised
+without a browser by loading the scripts into a mock canvas context and stepping
+`update`/`draw` for each mini-game and a sample platformer level. This is how the
+game is verified after changes — it confirms every chapter and mini-game runs to a
+win/lose state with no runtime errors. (Optional: `npm install canvas` lets you
+render real PNG previews of any sprite or screen for visual QA.)
+
+---
+
+## Backgrounds & regenerating art
+
+The chapter backdrops live in `assets/bg/` as PNGs named `ch1_nyc.png` …
+`ch9_amazon.png`, plus `ch_town.png` for the Bully Pulpit. The loader keys off
+the `bg` field in each chapter, so to replace any scene you just overwrite the
+file with the same name — no code change.
+
+`assets/bg/GEMINI_PROMPTS.md` contains a ready-to-paste prompt for each scene
+(painterly, 16:9, no characters, no text) so you can regenerate them in
+Gemini/Imagen and drop them straight in. The older code-generated `.webp` files
+remain as a secondary fallback and are ignored when the matching `.png` is present.
+
+---
+
+## Historical sourcing
+
+Dates, quotations, and the chapter facts were checked against the Library's
+`Book_Text` collection, including the *Captivating History* biography of Theodore
+Roosevelt and H. Paul Jeffers' *The Bully Pulpit: A Teddy Roosevelt Book of
+Quotations*. Facts appear in chronological order within each chapter. Two headline
+quotations are reproduced verbatim from those sources: **"Speak softly and carry a
+big stick; you will go far,"** and the closing **"Man in the Arena"** passage.
+Roosevelt's death is presented in the closing legacy screen rather than inside the
+Amazon chapter, to keep each chapter's events period-accurate.
+
+---
+
+## Known limitations & ideas
+
+- A hand-coded canvas game can't match console *hardware* 3D; the art targets a
+  polished, modern hand-drawn 2D look rather than literal "Switch" rendering.
+- Backgrounds are static painted scenes panned with parallax, not fully animated
+  environments.
+- Possible future additions: a high-score / time-attack mode, gamepad support,
+  more treasure facts per chapter, and animated foreground elements in the
+  backdrops.
+
+*A respectful tribute to Theodore Roosevelt, made for the Theodore Roosevelt
+Presidential Library.*
