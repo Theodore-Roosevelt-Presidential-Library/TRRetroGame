@@ -525,16 +525,22 @@
   function drawMenu(){
     Art.drawBackground(ctx, 3, "badlands", W, H, t*0.2, CHAPTERS[2].palette, t);
     ctx.fillStyle="rgba(0,0,0,.32)"; ctx.fillRect(0,0,W,H);
-    Art.drawTR(ctx, W*0.5, H*0.76, 168, {costume:"roughrider", age:"adult", state:"hat", t});
+    // TR stands on the left; text sits in the clear space to his right
+    Art.drawTR(ctx, W*0.20, H*0.82, 200, {costume:"roughrider", age:"adult", state:"hat", t});
+    // soft panel behind the text so it reads against the backdrop
+    ctx.fillStyle="rgba(10,12,18,.42)"; Art.rr(ctx, W*0.36, H*0.16, W*0.60, H*0.50, 16); ctx.fill();
+    const cx = W*0.66;                 // text column centered in the right-hand space
     ctx.textAlign="center"; ctx.shadowColor="#000"; ctx.shadowBlur=14;
-    ctx.fillStyle="#fff"; ctx.font="bold 54px Trebuchet MS"; ctx.fillText("ROUGH RIDER", W/2, H*0.26);
-    ctx.fillStyle="#ffd966"; ctx.font="bold 22px Trebuchet MS"; ctx.fillText("The Theodore Roosevelt Adventure", W/2, H*0.34);
+    ctx.fillStyle="#fff"; ctx.font="bold 52px Trebuchet MS"; ctx.fillText("ROUGH RIDER", cx, H*0.28);
+    ctx.fillStyle="#ffd966"; ctx.font="bold 21px Trebuchet MS"; ctx.fillText("The Theodore Roosevelt Adventure", cx, H*0.36);
     ctx.shadowBlur=0;
-    ctx.fillStyle="#fff"; ctx.font="18px Trebuchet MS"; ctx.fillText("Press  ENTER  to begin his life's journey", W/2, H*0.45);
+    ctx.fillStyle="#fff"; ctx.font="18px Trebuchet MS"; ctx.fillText("Press  ENTER  to begin his life's journey", cx, H*0.47);
     ctx.fillStyle="#e8dcc0"; ctx.font="14px Trebuchet MS";
-    ctx.fillText("Press  C  for Chapter Select        M = mute    F = fullscreen", W/2, H*0.51);
+    ctx.fillText("Press  C  for Chapter Select", cx, H*0.54);
+    ctx.fillText("M = mute     F = fullscreen", cx, H*0.59);
     ctx.fillStyle="#cdbf9c"; ctx.font="12px Trebuchet MS";
-    ctx.fillText("10 chapters across his whole life — platforming, treasure, and a mini-game each.", W/2, H*0.95);
+    ctx.fillText("10 chapters across his whole life —", cx, H*0.94);
+    ctx.fillText("platforming, treasure, and a mini-game each.", cx, H*0.975);
   }
 
   function drawSelect(){
