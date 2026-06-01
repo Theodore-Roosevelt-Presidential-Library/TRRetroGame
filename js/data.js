@@ -36,7 +36,7 @@ const CHAPTERS = [
       "After bullies manhandled him on a stagecoach at thirteen, his father told " +
       "him, \"You have the mind but you have not the body.\" Young \"Teedie\" began " +
       "to MAKE his body.",
-    bg: "ch1_nyc.png", scenery: "city1870", age: "child", costume: "boy",
+    bg: "ch1_nyc.webp", scenery: "city1870", age: "child", costume: "boy",
     enemy: "bully", enemy2: "alleycat",
     foes: "Stagecoach bullies and stray alley cats of old New York.",
     objective: "Run the block, dodge the bullies, and gather the four ★ that tell how a frail boy chose to build himself up.",
@@ -64,7 +64,7 @@ const CHAPTERS = [
       "boxing, where he fought in the lightweight division. He married Alice " +
       "Hathaway Lee in 1880 and, restless for the fight, won a seat in the New York " +
       "State Assembly at just 23.",
-    bg: "ch2_harvard.png", scenery: "campus", age: "teen", costume: "student",
+    bg: "ch2_harvard.webp", scenery: "campus", age: "teen", costume: "student",
     enemy: "rival", enemy2: "bulldog",
     foes: "A Yale boxing rival and his bulldog mascot around Harvard Yard.",
     objective: "Cross the campus past your rival and his bulldog to reach the ring.",
@@ -92,7 +92,7 @@ const CHAPTERS = [
       "same house on the same day. \"The light has gone out of my life,\" he wrote. " +
       "He fled west to ranch the Badlands, faced down a saloon bully who jeered " +
       "\"Four Eyes,\" and chased boat thieves across the icy Little Missouri.",
-    bg: "ch3_badlands.png", scenery: "badlands", age: "adult", costume: "cowboy",
+    bg: "ch3_badlands.webp", scenery: "badlands", age: "adult", costume: "cowboy",
     enemy: "rattler", enemy2: "tough",
     foes: "Prairie rattlesnakes and a saloon tough who sneered 'Four Eyes.'",
     objective: "Ride the Badlands, avoid the rattlers and the saloon tough, and reach the river.",
@@ -120,7 +120,7 @@ const CHAPTERS = [
       "corruption head-on. He prowled the streets after dark on his famous " +
       "\"midnight rambles,\" catching officers asleep or drinking on duty and " +
       "breaking the grip of Tammany graft.",
-    bg: "ch4_nightcity.png", scenery: "nightcity", age: "adult", costume: "cop",
+    bg: "ch4_nightcity.webp", scenery: "nightcity", age: "adult", costume: "cop",
     enemy: "grafter", enemy2: "alleycat",
     foes: "Tammany grafters and the alley cats of the midnight beat.",
     objective: "Walk the night beat, slip past the grafters, and reach the station house.",
@@ -147,7 +147,7 @@ const CHAPTERS = [
       "Appointed Assistant Secretary of the Navy in 1897, Roosevelt believed a " +
       "strong fleet kept the peace. \"Speak softly and carry a big stick,\" he later " +
       "said. He drilled American warships to readiness — then resigned to go fight.",
-    bg: "ch5_harbor.png", scenery: "harbor", age: "adult", costume: "navy",
+    bg: "ch5_harbor.webp", scenery: "harbor", age: "adult", costume: "navy",
     enemy: "wharfrat", enemy2: "gull",
     foes: "Wharf rats and screeching gulls around the Navy yard.",
     objective: "Cross the docks past the rats and gulls to the gunnery range.",
@@ -175,7 +175,7 @@ const CHAPTERS = [
       "the Cuban heat they battled Spanish fire and yellow-fever mosquitoes alike. " +
       "On July 1, 1898, he led the charge up Kettle Hill, grazed by a bullet, and " +
       "became a national hero.",
-    bg: "ch6_sanjuan.png", scenery: "cubahill", age: "adult", costume: "roughrider",
+    bg: "ch6_sanjuan.webp", scenery: "cubahill", age: "adult", costume: "roughrider",
     enemy: "soldier", enemy2: "mosquito",
     foes: "Spanish soldiers and swarms of yellow-fever mosquitoes in Cuba.",
     objective: "Push through the soldiers and mosquitoes to the foot of Kettle Hill.",
@@ -203,7 +203,7 @@ const CHAPTERS = [
       "1900 ticket as Vice President. On September 6, 1901, President McKinley was " +
       "shot; he died on the 14th. At 42, Roosevelt became the youngest President " +
       "in American history.",
-    bg: "ch7_capitol.png", scenery: "capitol", age: "mature", costume: "president",
+    bg: "ch7_capitol.webp", scenery: "capitol", age: "mature", costume: "president",
     enemy: "boss", enemy2: "redtape",
     foes: "Political machine bosses and tangles of bureaucratic red tape.",
     objective: "Climb from Albany to Washington, dodging bosses and red tape, to the telegraph office.",
@@ -231,7 +231,7 @@ const CHAPTERS = [
       "town to town. He busted the Northern Securities trust in 1902, settled the " +
       "great coal strike with a \"Square Deal,\" and in 1906 won the Nobel Peace " +
       "Prize for ending the Russo-Japanese War.",
-    bg: "ch_town.png", scenery: "capitol", age: "mature", costume: "president",
+    bg: "ch_town.webp", scenery: "capitol", age: "mature", costume: "president",
     enemy: "trust", enemy2: "boss",
     foes: "Monopoly 'trust' money-bags and the bosses who protect them.",
     objective: "Stump down Main Street past the trusts and bosses to the speaker\u2019s platform.",
@@ -259,7 +259,7 @@ const CHAPTERS = [
       "sleeping under the sequoias. \"Leave it as it is,\" he urged of the Grand " +
       "Canyon. As President he created 5 national parks, signed the 1906 Antiquities " +
       "Act, and protected roughly 230 million acres of public land.",
-    bg: "ch8_wilderness.png", scenery: "wilderness", age: "mature", costume: "naturalist",
+    bg: "ch8_wilderness.webp", scenery: "wilderness", age: "mature", costume: "naturalist",
     enemy: "poacher", enemy2: "logger",
     foes: "Poachers and loggers threatening the groves and wildlife.",
     objective: "Travel into Yosemite, turning back poachers and loggers, sparing the wildlife.",
@@ -287,7 +287,7 @@ const CHAPTERS = [
       "again in 1912 as a \"Bull Moose\" — shot in Milwaukee, he finished his speech " +
       "with the bullet still in him. In 1913–14 he and his son Kermit nearly died " +
       "mapping Brazil's uncharted \"River of Doubt.\"",
-    bg: "ch9_amazon.png", scenery: "amazon", age: "elder", costume: "explorer",
+    bg: "ch9_amazon.webp", scenery: "amazon", age: "elder", costume: "explorer",
     enemy: "piranha", enemy2: "jaguar",
     foes: "Leaping piranha and a stalking jaguar along the jungle river.",
     objective: "Trek to the headwaters past piranha and a jaguar to launch the canoe.",

@@ -229,9 +229,11 @@ must **spare** (marked with a ♥) — scaring the wildlife counts against you.
 
 ## Graphics & audio
 
-**Backgrounds** are AI-rendered painted scene images (`assets/bg/*.png`, ~1365×768)
-loaded at startup and panned with parallax. If an image fails to load, the engine
-falls back to procedurally drawn scenery so the game always runs.
+**Backgrounds** are AI-rendered painted scene images (`assets/bg/*.webp`, 1365×768)
+loaded at startup and panned with parallax. They're saved as **web-optimized WebP**
+(~120 KB each, ~1.5 MB total instead of ~19 MB of PNG) so they load quickly with no
+visible quality loss. If an image fails to load, the engine falls back to
+procedurally drawn scenery so the game always runs.
 
 **Characters and sprites** are drawn entirely in code on an HTML5 canvas in an
 **anime / Japanimation** style — large expressive eyes, clean dark outlines,
@@ -258,8 +260,8 @@ TRRetroGame/
 │   └── style.css           ← page frame, canvas sizing, fullscreen styling
 ├── assets/
 │   └── bg/
-│       ├── ch1_nyc.png … ch9_amazon.png   ← 9 chapter backdrops
-│       ├── ch_town.png                    ← Bully Pulpit Main Street backdrop
+│       ├── ch1_nyc.webp … ch9_amazon.webp ← 9 chapter backdrops (web-optimized)
+│       ├── ch_town.webp                   ← Bully Pulpit Main Street backdrop
 │       └── GEMINI_PROMPTS.md              ← prompts to regenerate any backdrop
 └── js/
     ├── data.js             ← all 10 chapters: text, dates, facts, costumes,
@@ -364,7 +366,8 @@ There's no build. Edit a `.js` file and refresh the browser.
   `time`, spawn rates) in `minigames.js`.
 - *Adjust an outfit or add a costume* → edit the `COSTUMES`/`AGE` tables in
   `sprites.js`.
-- *Swap a backdrop* → drop a new PNG into `assets/bg/` with the same filename.
+- *Swap a backdrop* → drop a new image into `assets/bg/` with the same filename
+  (the `bg` field in `data.js` controls the exact name; WebP is preferred for size).
 
 **Syntax-checking** (no runtime needed): `node --check js/<file>.js`.
 
@@ -379,15 +382,20 @@ render real PNG previews of any sprite or screen for visual QA.)
 
 ## Backgrounds & regenerating art
 
-The chapter backdrops live in `assets/bg/` as PNGs named `ch1_nyc.png` …
-`ch9_amazon.png`, plus `ch_town.png` for the Bully Pulpit. The loader keys off
-the `bg` field in each chapter, so to replace any scene you just overwrite the
-file with the same name — no code change.
+The chapter backdrops live in `assets/bg/` as web-optimized WebP files named
+`ch1_nyc.webp` … `ch9_amazon.webp`, plus `ch_town.webp` for the Bully Pulpit. The
+loader keys off the `bg` field in each chapter (`data.js`), so to replace any scene
+you overwrite the file referenced there — no code change.
+
+They were exported from 1365×768 source art at WebP quality 80, which shrinks each
+scene from ~1.4–3.9 MB (PNG) down to ~70–180 KB with no visible quality loss —
+about **1.5 MB total** instead of ~19 MB, so the game starts quickly.
 
 `assets/bg/GEMINI_PROMPTS.md` contains a ready-to-paste prompt for each scene
 (painterly, 16:9, no characters, no text) so you can regenerate them in
-Gemini/Imagen and drop them straight in. The older code-generated `.webp` files
-remain as a secondary fallback and are ignored when the matching `.png` is present.
+Gemini/Imagen. If you generate a new PNG, re-export it to WebP (e.g. Pillow:
+`Image.open("scene.png").convert("RGB").save("scene.webp","WEBP",quality=80,method=6)`)
+and point the chapter's `bg` field at it.
 
 ---
 
