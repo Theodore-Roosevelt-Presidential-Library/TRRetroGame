@@ -46,6 +46,7 @@
   let chapterIdx = 0;
   let t = 0, level = null, mg = null;
   let recap = { got:[], missed:[] };   // facts collected vs missed this chapter
+  let loseFrom = "mg";                  // "level" (out of hearts) or "mg" (mini-game failed)
 
   function costumeFor(ch){ return ch.costume || "cowboy"; }
   function ageFor(ch){ return ch.age || "adult"; }
@@ -198,7 +199,7 @@
     L.hp--; L.inv=70; Audio2.sfx.hit();
     if(pit){ L.px=L.safeX; L.py=L.safeY-4; L.vy=0; }
     else { L.px-=L.face*40; L.vy=-7; }
-    if(L.hp<=0){ state=S.LOSE; }
+    if(L.hp<=0){ loseFrom="level"; state=S.LOSE; }
   }
 
   function drawLevel(){
@@ -606,10 +607,16 @@
       ctx.fillStyle="#ffd966"; ctx.font="bold 15px Trebuchet MS";
       ctx.fillText(chapterIdx<CHAPTERS.length-1?"Press  ENTER  for the next chapter ►":"Press  ENTER  to see his legacy ►", W/2, H*0.87);
     } else {
-      ctx.fillStyle="#e57373"; ctx.font="bold 40px Trebuchet MS"; ctx.fillText("NOT QUITE…", W/2, H*0.3);
+      const fromLevel = loseFrom==="level";
+      ctx.fillStyle="#e57373"; ctx.font="bold 40px Trebuchet MS";
+      ctx.fillText(fromLevel?"OUT OF HEARTS!":"NOT QUITE…", W/2, H*0.3);
       ctx.fillStyle="#fff"; ctx.font="17px Trebuchet MS";
-      centerWrap(ctx, "\"It is hard to fail, but it is worse never to have tried to succeed.\" — Try again!", W/2, H*0.42, W*0.6, 24);
-      ctx.fillStyle="#ffd966"; ctx.font="bold 16px Trebuchet MS"; ctx.fillText("Press  ENTER  to retry", W/2, H*0.56);
+      centerWrap(ctx, fromLevel
+        ? "You must complete the stage to reach the mini-game. \"It is hard to fail, but it is worse never to have tried to succeed.\""
+        : "\"It is hard to fail, but it is worse never to have tried to succeed.\" — Try again!",
+        W/2, H*0.42, W*0.62, 24);
+      ctx.fillStyle="#ffd966"; ctx.font="bold 16px Trebuchet MS";
+      ctx.fillText(fromLevel?"Press  ENTER  to restart the stage":"Press  ENTER  to retry the mini-game", W/2, H*0.56);
       ctx.fillStyle="#cfc3a6"; ctx.font="14px Trebuchet MS"; ctx.fillText("(Press  S  to skip to the next chapter)", W/2, H*0.62);
     }
   }
@@ -710,7 +717,7 @@
         ctx.fillStyle="rgba(0,0,0,.4)"; ctx.fillRect(0,H-26,W,26);
         ctx.fillStyle="#fff"; ctx.font="12px Trebuchet MS"; ctx.textAlign="center"; ctx.fillText(mg.cfg.controls, W/2, H-9);
         if(mg.status==="won"){ Audio2.sfx.success(); state=S.RECAP; }
-        else if(mg.status==="lost"){ Audio2.sfx.fail(); state=S.LOSE; }
+        else if(mg.status==="lost"){ Audio2.sfx.fail(); loseFrom="mg"; state=S.LOSE; }
         break;
       case S.RECAP: drawRecap();
         if(input.pressed("Enter")){ Audio2.sfx.select(); state=S.WIN; }
@@ -719,7 +726,10 @@
         if(input.pressed("Enter")){ if(chapterIdx<CHAPTERS.length-1){ chapterIdx++; Audio2.sfx.select(); startCutscene(); } else state=S.END; }
         if(input.pressed("Escape")){ state=S.MENU; } break;
       case S.LOSE: drawResult(false);
-        if(input.pressed("Enter")){ Audio2.sfx.select(); startMGIntro(); }
+        if(input.pressed("Enter")){ Audio2.sfx.select();
+          if(loseFrom==="level") startLevel(chapterIdx);   // out of hearts → replay the whole stage
+          else startMGIntro();                              // mini-game failed → retry the mini-game
+        }
         if(input.pressed("KeyS")){ if(chapterIdx<CHAPTERS.length-1){ chapterIdx++; startCutscene(); } else state=S.END; }
         if(input.pressed("Escape")){ state=S.MENU; } break;
       case S.END: drawEnding();
