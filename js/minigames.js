@@ -220,60 +220,118 @@ function bar(ctx,x,y,w,h,p,col,label){
   ctx.fillStyle="#fff"; ctx.font="11px Trebuchet MS"; ctx.textAlign="left"; ctx.fillText(label,x,y-6);
 }
 
-/* -------- 3. River pursuit (boat dodging) -------- */
+/* -------- 3. River CHASE — catch the fleeing boat thieves --------
+   The thieves' boat runs ahead of you. Close the GAP by paddling (hold SPACE)
+   while steering into their lane and dodging ice floes & boulders. Catch them
+   (gap → 0) to win; if you lose all hearts you wreck and they escape. */
 class MGRiver {
-  constructor(env){ this.env=env; this.status="play"; this.x=env.W/2; this.dist=0; this.goal=2600;
-    this.hp=4; this.maxHp=4; this.obst=[]; this.spawnT=0; this.speed=3.2; this.costume="cowboy"; this.label="thieves ahead"; }
+  constructor(env){ this.env=env; this.status="play";
+    this.x=env.W/2;                 // player horizontal
+    this.tx=env.W/2;                // thieves' boat horizontal
+    this.tDir=1; this.tTurn=rand(40,90);
+    this.gap=100;                   // distance to the thieves (100 far → 0 caught)
+    this.hp=4; this.maxHp=4;
+    this.obst=[]; this.spawnT=0; this.scroll=0; this.stun=0; this.costume="cowboy"; this.caughtFx=0; }
   update(input){
-    if(input.down("ArrowLeft")) this.x-=4.2;
-    if(input.down("ArrowRight")) this.x+=4.2;
-    const push = input.down("Space")?1.7:1;
-    this.x=clamp(this.x,this.env.W*0.18,this.env.W*0.82);
-    this.dist+=this.speed*push;
-    this.spawnT--; if(this.spawnT<=0){ this.spawnT=rand(22,40)/push;
-      this.obst.push({x:rand(this.env.W*0.18,this.env.W*0.82),y:-40,r:rand(16,30),
-        type:Math.random()<0.5?"ice":"rock"}); }
-    for(const o of this.obst){ o.y+=this.speed*push*1.4;
-      if(Math.abs(o.x-this.x)<o.r+16 && Math.abs(o.y-this.env.H*0.78)<o.r+18){
-        o.hit=true; this.hp--; Audio2.sfx.hit(); this.env.particles.spawn(this.x,this.env.H*0.78,{n:12,color:"#bfe3ff",spread:3}); }
+    const {W}=this.env;
+    if(this.status!=="play"){ return; }
+    // steering
+    if(input.down("ArrowLeft")) this.x-=4.4;
+    if(input.down("ArrowRight")) this.x+=4.4;
+    this.x=clamp(this.x,W*0.20,W*0.80);
+    // thieves weave to shake you
+    this.tTurn--; if(this.tTurn<=0){ this.tDir=Math.random()<0.5?-1:1; this.tTurn=rand(40,90); }
+    this.tx=clamp(this.tx+this.tDir*1.8, W*0.22, W*0.78);
+
+    if(this.stun>0) this.stun--;
+    const paddling = input.down("Space") && this.stun<=0;
+    const aligned = Math.abs(this.tx-this.x) < 70;          // lined up behind them?
+    // close or lose ground
+    if(paddling){
+      this.gap -= aligned ? 0.85 : 0.45;                    // gain more when in their wake
+      if(Math.random()<0.4) Audio2.sfx.paddle();
+    } else {
+      this.gap += 0.30;                                     // they pull away if you coast
+    }
+    this.gap=clamp(this.gap,0,120);
+    this.scroll += (paddling?6:3);
+
+    // obstacles flow toward the player; faster when paddling
+    const flow = paddling?6:3.4;
+    this.spawnT--; if(this.spawnT<=0){ this.spawnT=rand(24,40);
+      this.obst.push({x:rand(W*0.22,W*0.78),y:-40,r:rand(16,28),type:Math.random()<0.5?"ice":"rock"}); }
+    for(const o of this.obst){ o.y+=flow*1.4;
+      if(Math.abs(o.x-this.x)<o.r+16 && Math.abs(o.y-this.env.H*0.80)<o.r+18){
+        o.hit=true; this.hp--; this.stun=24; this.gap=clamp(this.gap+10,0,120);   // wreck sets you back
+        Audio2.sfx.hit(); this.env.particles.spawn(this.x,this.env.H*0.80,{n:14,color:"#bfe3ff",spread:3}); }
     }
     this.obst=this.obst.filter(o=>o.y<this.env.H+50 && !o.hit);
-    if(this.hp<=0) this.status="lost";
-    if(this.dist>=this.goal) this.status="won";
-    this.progress=this.dist/this.goal;
-    if(input.down("Space")&&Math.random()<0.4) Audio2.sfx.paddle();
+
+    if(this.caughtFx>0) this.caughtFx--;
+    if(this.gap<=0){ this.status="won"; }
+    if(this.hp<=0){ this.status="lost"; }
+    this.progress=1-this.gap/100;        // HUD: how close to catching them
+  }
+  drawBoat(ctx,x,y,scale,thieves,t){
+    ctx.save(); ctx.translate(x,y); ctx.scale(scale,scale);
+    // wake
+    ctx.fillStyle="rgba(255,255,255,.25)"; ctx.beginPath(); ctx.ellipse(0,16,30,7,0,0,7); ctx.fill();
+    // hull
+    ctx.fillStyle="#3a2716"; Art.rr(ctx,-28,-6,56,26,11); ctx.fill();
+    ctx.fillStyle="#5a3c20"; Art.rr(ctx,-24,-4,48,18,9); ctx.fill();
+    ctx.strokeStyle="#241710"; ctx.lineWidth=2; Art.rr(ctx,-28,-6,56,26,11); ctx.stroke();
+    ctx.fillStyle="#6e4a28"; for(let bx=-22;bx<24;bx+=10) ctx.fillRect(bx,-3,1,16);   // planks
+    ctx.restore();
+    if(thieves){ // two crooks rowing, glancing back over the shoulder
+      for(const sx of [-9,9]){
+        ctx.save(); ctx.translate(x+sx*scale, y-12*scale); ctx.scale(scale,scale);
+        ctx.fillStyle="#5a4630"; Art.rr(ctx,-7,-4,14,18,5); ctx.fill();               // body
+        ctx.fillStyle="#e6b48a"; ctx.beginPath(); ctx.arc(0,-9,6,0,7); ctx.fill();     // head
+        ctx.strokeStyle="#2a1d12"; ctx.lineWidth=1.4; ctx.stroke();
+        ctx.fillStyle="#3a2a18"; ctx.beginPath(); ctx.ellipse(0,-13,8,2.4,0,0,7); ctx.fill(); // hat brim
+        ctx.fillStyle="#3a2a18"; Art.rr(ctx,-5,-18,10,5,2); ctx.fill();
+        ctx.fillStyle="#15233a"; ctx.beginPath(); ctx.arc(-2,-9,1.3,0,7); ctx.fill();  // worried eye
+        ctx.strokeStyle="#5a4326"; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(6,-2); ctx.lineTo(16,8); ctx.stroke(); // oar
+        ctx.restore();
+      }
+    }
   }
   draw(ctx,t){
     const {W,H}=this.env;
-    // water
+    // river water
     const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,"#4a7c91"); g.addColorStop(1,"#23414f");
     ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-    // banks
-    ctx.fillStyle="#6e4a28"; ctx.fillRect(0,0,W*0.16,H); ctx.fillRect(W*0.84,0,W*0.16,H);
+    // banks scrolling past
+    ctx.fillStyle="#6e4a28"; ctx.fillRect(0,0,W*0.18,H); ctx.fillRect(W*0.82,0,W*0.18,H);
     ctx.fillStyle="#5a3c20";
-    for(let y=(this.dist*1.4)%40-40;y<H;y+=40){ctx.fillRect(W*0.16-6,y,6,20);ctx.fillRect(W*0.84,y,6,20);}
-    // current lines
+    for(let y=(this.scroll*1.2)%40-40;y<H;y+=40){ ctx.fillRect(W*0.18-6,y,6,20); ctx.fillRect(W*0.82,y,6,20); }
+    // current streaks
     ctx.strokeStyle="rgba(255,255,255,.18)"; ctx.lineWidth=2;
-    for(let y=(this.dist*2)%30;y<H;y+=30){ctx.beginPath();ctx.moveTo(W*0.3,y);ctx.lineTo(W*0.3,y+12);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(W*0.7,y+10);ctx.lineTo(W*0.7,y+22);ctx.stroke();}
-    // obstacles (detailed ice floes & boulders)
-    for(const o of this.obst){
-      if(o.type==="ice"){ pIce(ctx,o.x,o.y,o.r); } else { pBoulder(ctx,o.x,o.y,o.r); }
+    for(let y=(this.scroll*1.8)%30;y<H;y+=30){ ctx.beginPath(); ctx.moveTo(W*0.32,y); ctx.lineTo(W*0.32,y+12); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(W*0.68,y+10); ctx.lineTo(W*0.68,y+22); ctx.stroke(); }
+    // obstacles
+    for(const o of this.obst){ if(o.type==="ice") pIce(ctx,o.x,o.y,o.r); else pBoulder(ctx,o.x,o.y,o.r); }
+    // ---- thieves' boat: nearer the top when far, descends toward you as the gap closes ----
+    const ty = H*0.18 + (1-this.gap/100)*(H*0.42);   // gap 100 → high/small, gap 0 → close
+    const tscale = 0.7 + (1-this.gap/100)*0.5;
+    this.drawBoat(ctx,this.tx,ty,tscale,true,t);
+    // catch flash
+    if(this.status==="won"||this.caughtFx>0){ ctx.fillStyle="rgba(255,230,150,.5)";
+      ctx.beginPath(); ctx.arc(this.tx,ty,40,0,7); ctx.fill(); }
+    // ---- player's boat + TR paddling (stun flickers) ----
+    const by=H*0.80;
+    if(!(this.stun>0 && Math.floor(t/60)%2===0)){
+      this.drawBoat(ctx,this.x,by,1.0,false,t);
+      Art.drawTR(ctx,this.x,by-2,70,{costume:this.costume,age:"adult",state:"paddle",t});
     }
-    // target thieves' boat near goal
-    if(this.progress>0.7){ const ty=H*0.78-(this.progress-0.7)/0.3*(H*0.5);
-      ctx.fillStyle="#3a2a18"; Art.rr(ctx,W/2-26,ty,52,22,8); ctx.fill();
-      ctx.fillStyle="#222"; ctx.beginPath(); ctx.arc(W/2-8,ty,6,0,7); ctx.arc(W/2+8,ty,6,0,7); ctx.fill(); }
-    // player boat
-    const by=H*0.78;
-    ctx.save(); ctx.translate(this.x,by);
-    ctx.fillStyle="#4a3320"; Art.rr(ctx,-26,-6,52,28,10); ctx.fill();
-    ctx.fillStyle="#6e4a28"; Art.rr(ctx,-22,-4,44,18,8); ctx.fill();
-    ctx.restore();
-    Art.drawTR(ctx,this.x,by+4,70,{costume:this.costume,state:"paddle",t});
-    bar(ctx,W/2-120,20,240,14,this.progress,"#7ad0e0","DOWNRIVER");
-    // hearts
+    // HUD
+    bar(ctx,W/2-130,22,260,16,this.progress,"#7ad0e0","CLOSING IN");
     for(let i=0;i<this.maxHp;i++){ ctx.fillStyle=i<this.hp?"#ff5a5a":"#444"; heart(ctx,30+i*26,30,9); }
+    // prompts
+    ctx.textAlign="center"; ctx.font="bold 15px Trebuchet MS";
+    if(this.gap>60){ ctx.fillStyle="#ffd34d"; ctx.fillText("After them! Hold SPACE to paddle — steer into their wake",W/2,H*0.12); }
+    else if(this.gap>12){ ctx.fillStyle="#8be28b"; ctx.fillText("Gaining on them — stay in their lane!",W/2,H*0.12); }
+    else { ctx.fillStyle="#ffd34d"; ctx.fillText("Almost got 'em!",W/2,H*0.12); }
   }
 }
 function heart(ctx,x,y,s){ ctx.beginPath(); ctx.moveTo(x,y+s*0.3);

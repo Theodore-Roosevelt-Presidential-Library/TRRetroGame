@@ -107,7 +107,7 @@ verbatim **"Man in the Arena"** passage.
 |---|-------|---------|-----------|----------------|
 | 1 | 1858–1876 | A Sickly Boy in New York | **Make Your Body** (rhythm lifting) | `SPACE` in time with the ring |
 | 2 | 1876–1882 | Harvard & the Boxing Ring | **Harvard Boxing Match** | `← →` bob/dodge · `J` jab · `K` cross |
-| 3 | 1884–1886 | Into the Dakota Badlands | **Capture the Boat Thieves** | `← →` steer · hold `SPACE` to paddle |
+| 3 | 1884–1886 | Into the Dakota Badlands | **Catch the Boat Thieves** (river chase) | `← →` steer into their wake · hold `SPACE` to paddle |
 | 4 | 1895–1897 | Cleaning Up the NYPD | **The Midnight Ramble** | arrows move · `SPACE` lantern |
 | 5 | 1897–1898 | Assistant Secretary of the Navy | **Naval Gunnery Drill** | `↑ ↓` aim · `SPACE` fire |
 | 6 | 1898 | The Rough Riders | **Charge Up Kettle Hill** | `SPACE`/`↑` jump (double-jump) |

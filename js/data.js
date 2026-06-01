@@ -104,9 +104,9 @@ const CHAPTERS = [
       "Captured boat thieves on the river, 1886",
     ],
     minigame: {
-      type: "river", name: "CAPTURE THE BOAT THIEVES",
-      goal: "Steer downriver and reach the thieves without wrecking.",
-      controls: "← / → steer the boat.  Hold SPACE to paddle faster. Dodge ice floes & rocks.",
+      type: "river", name: "CATCH THE BOAT THIEVES",
+      goal: "Chase down the fleeing thieves and close the gap to catch them.",
+      controls: "← / → steer into their wake.  Hold SPACE to paddle & gain on them. Dodge ice floes & rocks.",
       win: "Roosevelt brought the thieves to justice — reading Tolstoy to them along the way.",
     },
   },
