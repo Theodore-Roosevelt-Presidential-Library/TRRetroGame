@@ -642,7 +642,7 @@ class MGGun {
     this.splashes=this.splashes.filter(sp=>sp.life>0);
     this.spawnT--; if(this.spawnT<=0){ this.spawnT=rand(50,90);
       // ships ride on/near the sea surface (just above the waterline) so they read as afloat
-      this.ships.push({x:this.env.W+60,y:rand(this.env.H*0.48,this.env.H*0.56),v:rand(1.0,2.0)}); }
+      this.ships.push({x:this.env.W+60,y:rand(this.env.H*0.30,this.env.H*0.62),v:rand(1.0,2.0)}); }
     for(const sh of this.ships){ sh.x-=sh.v;
       for(const s of this.shots){ if(Math.abs(s.x-sh.x)<62&&Math.abs(s.y-sh.y)<46){
         sh.dead=true; s.dead=true; this.hits++; Audio2.sfx.hit();
@@ -655,19 +655,29 @@ class MGGun {
   }
   draw(ctx,t){
     const {W,H}=this.env;
-    // painted harbor backdrop (procedural fallback inside drawBackground)
-    Art.drawBackground(ctx,5,"harbor",W,H,t*0.3,(typeof CHAPTERS!=="undefined"?CHAPTERS[4].palette:{}),t);
-    const seaY=H*0.62;
-    const g=ctx.createLinearGradient(0,seaY,0,H); g.addColorStop(0,"#4a7c91"); g.addColorStop(1,"#1f3a4a");
-    ctx.fillStyle=g; ctx.fillRect(0,seaY,W,H-seaY);
-    ctx.strokeStyle="rgba(255,255,255,.22)"; ctx.lineWidth=2;
-    for(let y=seaY+10;y<H;y+=18){ ctx.beginPath(); for(let x=0;x<=W;x+=18) ctx.lineTo(x,y+Math.sin((x+t*0.6)*0.045)*3); ctx.stroke(); }
-    // ---- detailed battleships riding the waterline ----
+    // ---- open ocean filling the whole screen (no photo backdrop) ----
+    const g=ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,"#5e93ac"); g.addColorStop(0.45,"#3f7388"); g.addColorStop(1,"#173040");
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    // rolling swell bands for depth, all the way up
+    for(let i=0;i<7;i++){ const band=H*(0.10+i*0.13); const amp=2+i*0.6;
+      ctx.fillStyle="rgba(255,255,255,"+(0.05+i*0.012)+")"; ctx.beginPath(); ctx.moveTo(0,band);
+      for(let x=0;x<=W;x+=18) ctx.lineTo(x, band+Math.sin((x+t*0.5+i*40)*0.03)*amp);
+      ctx.lineTo(W,band+8); for(let x=W;x>=0;x-=18) ctx.lineTo(x, band+8+Math.sin((x+t*0.5+i*40)*0.03)*amp);
+      ctx.closePath(); ctx.fill(); }
+    // foam wave streaks across the surface
+    ctx.strokeStyle="rgba(255,255,255,.18)"; ctx.lineWidth=2;
+    for(let y=20;y<H;y+=26){ ctx.beginPath(); for(let x=0;x<=W;x+=18) ctx.lineTo(x,y+Math.sin((x+t*0.6+y)*0.04)*3); ctx.stroke(); }
+    // sun glints
+    ctx.fillStyle="rgba(255,250,220,.10)";
+    for(let i=0;i<24;i++){ const gx=((i*131 + t*0.4)%W); const gy=H*0.2+((i*53)%(H*0.7)); ctx.fillRect(gx,gy,7,2); }
+    // ---- detailed battleships sailing on the open water ----
     for(const sh of this.ships){
       const bob=Math.sin(t*0.004+sh.x)*2;
       ctx.fillStyle="rgba(255,255,255,.20)"; ctx.beginPath(); ctx.ellipse(sh.x,sh.y+26,78,10,0,0,7); ctx.fill();
       pBattleship(ctx, sh.x, sh.y+bob, 2.0, t);
     }
+    const seaY=H*0.62;
     // shells in flight + splashes
     for(const s of this.shots){ pShell(ctx,s.x,s.y,6); }
     for(const sp of this.splashes){ ctx.globalAlpha=Math.max(0,sp.life/18); pSplash(ctx,sp.x,seaY); ctx.globalAlpha=1; }
