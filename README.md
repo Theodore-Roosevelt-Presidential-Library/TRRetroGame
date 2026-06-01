@@ -259,10 +259,13 @@ TRRetroGame/
 ├── css/
 │   └── style.css           ← page frame, canvas sizing, fullscreen styling
 ├── assets/
+│   ├── favicon.ico / favicon-*.png        ← site icon: the TR sprite in a medallion
 │   └── bg/
 │       ├── ch1_nyc.webp … ch9_amazon.webp ← 9 chapter backdrops (web-optimized)
 │       ├── ch_town.webp                   ← Bully Pulpit Main Street backdrop
 │       └── GEMINI_PROMPTS.md              ← prompts to regenerate any backdrop
+├── scripts/
+│   └── make_favicon.js     ← regenerates the favicons from the TR sprite (needs node-canvas)
 └── js/
     ├── data.js             ← all 10 chapters: text, dates, facts, costumes,
     │                          ages, enemies, objectives, mini-game configs, quotes
