@@ -90,6 +90,30 @@
   tapLayer.addEventListener("touchstart", e => { e.preventDefault(); T.tap("Enter"); }, {passive:false});
   ui.appendChild(tapLayer);
 
+  // ---- "Tap for Fullscreen" banner ----
+  // Fullscreen can only be entered from a user gesture, so we can't auto-trigger
+  // it on rotate. Instead, when the phone is in landscape and not yet fullscreen
+  // (and the browser supports it), show a one-tap banner that enters fullscreen +
+  // locks landscape, hiding the browser chrome.
+  const FS = window.TRFull || null;
+  const fsBanner = document.createElement("button");
+  fsBanner.className = "tfsbanner";
+  fsBanner.innerHTML = "⛶ &nbsp;Tap for full screen";
+  fsBanner.addEventListener("touchstart", e => { e.preventDefault(); if(FS) FS.toggle(); }, {passive:false});
+  ui.appendChild(fsBanner);
+
+  function isLandscape(){
+    return (window.matchMedia && window.matchMedia("(orientation: landscape)").matches) ||
+           (window.innerWidth > window.innerHeight);
+  }
+  function refreshFsBanner(){
+    const supported = FS && FS.supported && FS.supported();
+    const active    = FS && FS.active && FS.active();
+    // show only when: supported, in landscape, and not already fullscreen
+    fsBanner.style.display = (supported && isLandscape() && !active) ? "flex" : "none";
+    bFull.style.display = supported ? "" : "none";   // hide the corner FS button where unsupported (e.g. iOS Safari)
+  }
+
   // ---- per-screen adaptation: show only the buttons each screen needs ----
   const PLAY_STATES = new Set(["level","mg"]);
   function refresh(){
@@ -141,6 +165,10 @@
   }
 
   // poll a few times a second to keep button layout in sync with game state
-  setInterval(refresh, 120);
-  refresh();
+  setInterval(()=>{ refresh(); refreshFsBanner(); }, 120);
+  // also react immediately to orientation / fullscreen changes
+  ["orientationchange","resize","fullscreenchange","webkitfullscreenchange"].forEach(ev=>{
+    window.addEventListener(ev, ()=>setTimeout(refreshFsBanner, 60));
+  });
+  refresh(); refreshFsBanner();
 })();

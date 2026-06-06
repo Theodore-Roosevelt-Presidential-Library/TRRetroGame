@@ -88,6 +88,15 @@ screen, just **tap the screen** to continue. The game is 16:9, so it prompts you
 to rotate to **landscape** in portrait. These controls are rendered **only on
 touch devices** — desktop is unchanged and shows nothing extra.
 
+**Full screen on mobile.** Browsers only allow fullscreen from a tap (it can't be
+triggered automatically on rotate), so once you turn the phone to landscape a
+**"⛶ Tap for full screen"** banner appears at the top; tapping it enters
+fullscreen and locks to landscape, hiding the browser chrome. The code tries every
+vendor prefix and falls back to the document element for broad support. iOS Safari
+doesn't expose the Fullscreen API on web pages, so the banner is hidden there —
+but the page includes Apple web-app meta tags, so iPhone users can **Share → Add
+to Home Screen** and launch it chromeless/full-screen from the icon.
+
 ---
 
 ## How the game is structured

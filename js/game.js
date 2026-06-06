@@ -44,11 +44,40 @@
 
   let flashMsg = "", flashT = 0;
   function flash(m){ flashMsg = m; flashT = 80; }
-  function toggleFull(){
-    const f = document.getElementById("frame");
-    if (!document.fullscreenElement) (f.requestFullscreen||f.webkitRequestFullscreen||(()=>{})).call(f);
-    else document.exitFullscreen && document.exitFullscreen();
+  function fsElement(){
+    return document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || null;
   }
+  function fsSupported(){
+    const f = document.getElementById("frame") || document.documentElement;
+    return !!(f.requestFullscreen || f.webkitRequestFullscreen || f.mozRequestFullScreen ||
+              document.documentElement.webkitRequestFullscreen);
+  }
+  function lockLandscape(){
+    try {
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock("landscape").catch(()=>{});   // many browsers reject silently
+      }
+    } catch(e){}
+  }
+  function toggleFull(){
+    const f = document.getElementById("frame") || document.documentElement;
+    if (!fsElement()){
+      // try the frame first, then the document element (some mobile browsers
+      // only honor fullscreen on the root element), across vendor prefixes
+      const req = f.requestFullscreen || f.webkitRequestFullscreen || f.mozRequestFullScreen;
+      const reqDoc = document.documentElement.requestFullscreen ||
+                     document.documentElement.webkitRequestFullscreen;
+      const p = req ? req.call(f) : (reqDoc ? reqDoc.call(document.documentElement) : null);
+      // once we're in fullscreen, pin to landscape so the phone fills the screen
+      if (p && p.then) p.then(lockLandscape).catch(lockLandscape); else lockLandscape();
+    } else {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen;
+      if (exit) exit.call(document);
+      try { screen.orientation && screen.orientation.unlock && screen.orientation.unlock(); } catch(e){}
+    }
+  }
+  // expose for touch.js to query support / state
+  if (typeof window !== "undefined"){ window.TRFull = { toggle:toggleFull, supported:fsSupported, active:fsElement }; }
 
   /* ---------------- Shared ---------------- */
   const particles = new Art.Particles();
