@@ -91,13 +91,20 @@ touch devices** — desktop is unchanged and shows nothing extra.
 **Full screen on mobile.** Browsers only allow fullscreen from a tap (it can't be
 triggered automatically on rotate). So on a phone you get a clean start flow:
 hold the device in **portrait** and you see a "rotate to landscape" hint; rotate to
-**landscape** and a full-screen **"Tap to Start"** splash appears. One tap on it
-enters fullscreen, locks the orientation to landscape (hiding the browser chrome),
-and drops you on the title screen ready to play. The fullscreen code tries every
-vendor prefix and falls back to the document element for broad support. iOS Safari
-doesn't expose the Fullscreen API to web pages, so there the splash still starts
-the game normally — and the page ships Apple web-app meta tags so iPhone users can
-**Share → Add to Home Screen** to launch it chromeless from the icon.
+**landscape** and a full-screen **"Tap to Start"** splash appears. One tap enters
+fullscreen, locks the orientation to landscape, and drops you on the title screen.
+The fullscreen code tries every vendor prefix and falls back to the document
+element for broad support.
+
+**iOS Safari** has no Fullscreen API and keeps its toolbars on screen, and `100vh`
+there counts the area *behind* those bars — which previously pushed the 16:9
+playfield off-screen. The game now measures the **actually visible** viewport via
+`window.visualViewport` (published as CSS `--vw`/`--vh`, with `svh`/`dvh`
+fallbacks) and fits a **letterboxed 16:9 box** inside it, so it's fully usable even
+with the Safari toolbars visible — nothing is cropped. For a genuinely chromeless
+experience the splash invites iPhone users to **Share → Add to Home Screen**; the
+page ships the Apple web-app meta tags so it then launches full-screen from the
+icon (and detects that standalone mode at runtime).
 
 ---
 

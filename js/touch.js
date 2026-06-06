@@ -20,6 +20,36 @@
   const T = window.TRTouch;
   document.body.classList.add("is-touch");
 
+  // iOS (incl. iPadOS posing as Mac) detection — Safari has no Fullscreen API,
+  // so we handle sizing + an "Add to Home Screen" path specially.
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const isStandalone = (window.navigator.standalone === true) ||
+                       (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches);
+  if (isStandalone) document.body.classList.add("is-standalone");
+
+  // ---- Track the ACTUAL visible viewport and publish it as CSS vars ----
+  // On iOS the toolbars overlay the page; visualViewport reports the true area.
+  function syncViewport(){
+    const vv = window.visualViewport;
+    const w = Math.round(vv ? vv.width  : window.innerWidth);
+    const h = Math.round(vv ? vv.height : window.innerHeight);
+    const r = document.documentElement.style;
+    r.setProperty("--vw", w + "px");
+    r.setProperty("--vh", h + "px");
+  }
+  syncViewport();
+  if (window.visualViewport){
+    window.visualViewport.addEventListener("resize", syncViewport);
+    window.visualViewport.addEventListener("scroll", syncViewport);
+  }
+  ["resize","orientationchange","scroll"].forEach(ev =>
+    window.addEventListener(ev, ()=>{ syncViewport(); setTimeout(syncViewport, 250); }));
+  // iOS sometimes settles toolbar size a beat late after rotate
+  setTimeout(syncViewport, 400); setTimeout(syncViewport, 900);
+  // nudge Safari to collapse the toolbars after the first interaction
+  function nudgeScroll(){ try { window.scrollTo(0, 1); setTimeout(()=>window.scrollTo(0,1),120); } catch(e){} }
+
   // ---- overlay root ----
   const ui = document.createElement("div");
   ui.id = "touch-ui";
@@ -96,25 +126,33 @@
   // big "Tap to Start" button. Tapping it: enters fullscreen + locks landscape,
   // then begins the game — one clean gesture.
   const FS = window.TRFull || null;
+  const fsAvail = FS && FS.supported && FS.supported();   // real Fullscreen API?
   const startOverlay = document.createElement("div");
   startOverlay.className = "tstart";
+  // On iOS Safari there's no Fullscreen API, so don't promise full screen there;
+  // instead invite Add-to-Home-Screen (which DOES launch chromeless).
+  const note = fsAvail ? "Enters full screen"
+             : (isIOS && !isStandalone) ? "For true full screen: Share ↑ → Add to Home Screen"
+             : "";
   startOverlay.innerHTML =
     '<div class="tstart-card">' +
       '<div class="tstart-title">ROUGH RIDER</div>' +
       '<div class="tstart-sub">The Theodore Roosevelt Adventure</div>' +
       '<div class="tstart-btn">▶ &nbsp;Tap to Start</div>' +
-      '<div class="tstart-note">Enters full screen</div>' +
+      '<div class="tstart-note">' + note + '</div>' +
     '</div>';
   let started = false;             // becomes true after the first Tap to Start
   startOverlay.addEventListener("touchstart", e => {
     e.preventDefault();
-    if (FS && FS.supported && FS.supported() && !(FS.active && FS.active())) {
-      FS.toggle();                 // fullscreen + landscape lock (no-op where unsupported)
+    if (fsAvail && !(FS.active && FS.active())) {
+      FS.toggle();                 // real fullscreen + landscape lock
+    } else {
+      nudgeScroll();               // iOS: hide the toolbars by scrolling to top
     }
     started = true;
     startOverlay.classList.remove("show");
-    // Drop the player onto the normal title screen (fullscreen now active), where
-    // they can choose Start or Chapter Select with the on-screen controls.
+    syncViewport();
+    // Drop the player onto the title screen, ready to play.
   }, {passive:false});
   ui.appendChild(startOverlay);
 
