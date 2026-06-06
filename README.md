@@ -469,6 +469,48 @@ in `game.js`; it's hidden during active play so it never covers the action.
 
 ---
 
+## Completion reward (promo code)
+
+Finishing **all 10 chapters** unlocks a reward on the final ("Man in the Arena")
+screen: a promo code plus a green **"Claim your free youth ticket"** button that
+links to the Library. The intended offer is **1 free youth admission with a paid
+adult ticket**.
+
+**How it works**
+- Each chapter is marked cleared (in `localStorage`, key `tr_cleared_v1`) only when
+  its mini-game is genuinely won — skipping doesn't count. Progress survives a
+  refresh. When all 10 are cleared, `allCleared()` is true and the reward shows.
+- Before completion the ending instead nudges: "clear all 10 chapters to unlock a
+  special reward."
+- The code is **stored base64-encoded** (`codeEnc`) and only decoded at runtime
+  when the reward is earned, so a casual *view source* / Ctrl-F won't reveal it.
+
+**To change the offer** — edit the `REWARD` object near the top of `js/game.js`:
+
+```js
+const REWARD = {
+  codeEnc: "Uk9VR0hSSURFUg==",   // base64 of the code; run btoa("YOURCODE") in a console
+  get code(){ return atob(this.codeEnc); },
+  headline: "YOU COMPLETED THE JOURNEY!",
+  offer: "1 FREE youth admission with a paid adult ticket",
+  url: "https://www.trlibrary.com/",   // where the Claim button links
+};
+```
+To set a new code, open any browser console, run `btoa("YOURNEWCODE")`, and paste
+the result as `codeEnc`.
+
+**Important — base64 is light obfuscation, NOT security.** The game is a static
+site, so a determined user can still recover the code from the running page. The
+real limits must live in **your ticketing system**: create the code there with the
+rules that matter — *requires a paid adult ticket*, a **total redemption cap**,
+**one-per-customer**, and an **expiration date**. The game only *displays* the code
+and links to the site; it doesn't validate redemptions. If you later want
+genuinely unique, single-use codes, that needs a small backend
+(serverless function or a ticketing-API integration) — the same reward screen can
+point its button there without other changes.
+
+---
+
 ## Known limitations & ideas
 
 - A hand-coded canvas game can't match console *hardware* 3D; the art targets a

@@ -10,6 +10,7 @@
   const W = canvas.width, H = canvas.height;
   const loading = document.getElementById("loading");
   const trplLogo = document.getElementById("trpl-logo");   // clickable TRPL wordmark overlay
+  const claimBtn = document.getElementById("claim-btn");   // completion-reward claim link
 
   /* ---------------- Input ---------------- */
   // Touch device? On phones we hide keyboard cues ("Press ENTER…") and let the
@@ -71,6 +72,40 @@
                      letter: (mg && mg.cur) ? mg.cur.ch : null }; },
   };
   if (typeof window !== "undefined") window.TRTouch = touchBridge;
+
+  /* ============================================================================
+     COMPLETION REWARD
+     Finish all chapters → reveal a promo code for 1 free youth admission with a
+     paid adult ticket. Completion is tracked per-chapter in localStorage so it
+     survives a refresh; only genuine wins count.
+
+     The code is stored base64-encoded (not as plaintext) so a casual "view
+     source" / Ctrl-F won't surface it, and it's only decoded at runtime once the
+     reward is actually earned. This is light obfuscation, NOT security — a
+     determined user can still recover it, so the real limits (adult-ticket
+     requirement, redemption cap, expiry) must live in your ticketing system.
+
+     To change the code: open any browser console and run  btoa("YOURNEWCODE")
+       then paste the result as codeEnc below. (Decode/check with atob(codeEnc).)
+     ========================================================================== */
+  const REWARD = {
+    codeEnc: "VFJORDE4ODM=",                   // base64 of the promo code
+    get code(){ try { return atob(this.codeEnc); } catch(e){ return ""; } },
+    headline: "YOU COMPLETED THE JOURNEY!",
+    offer: "1 FREE youth admission with a paid adult ticket",
+    url: "https://www.trlibrary.com/",        // where to claim
+  };
+  const CLEARED_KEY = "tr_cleared_v1";
+  function loadCleared(){
+    try { return new Set(JSON.parse(localStorage.getItem(CLEARED_KEY) || "[]")); }
+    catch(e){ return new Set(); }
+  }
+  let clearedSet = loadCleared();
+  function markCleared(id){
+    clearedSet.add(id);
+    try { localStorage.setItem(CLEARED_KEY, JSON.stringify([...clearedSet])); } catch(e){}
+  }
+  function allCleared(){ return CHAPTERS.every(ch => clearedSet.has(ch.id)); }
 
   let flashMsg = "", flashT = 0;
   function flash(m){ flashMsg = m; flashT = 80; }
@@ -765,16 +800,37 @@
   function drawEnding(){
     Art.drawBackground(ctx, 9, "wilderness", W, H, t*0.15, CHAPTERS[8].palette, t);
     ctx.fillStyle="rgba(0,0,0,.55)"; ctx.fillRect(0,0,W,H); ctx.textAlign="center";
-    ctx.fillStyle="#ffd966"; ctx.font="bold 36px Trebuchet MS"; ctx.fillText("THE MAN IN THE ARENA", W/2, H*0.18);
-    ctx.fillStyle="#fff"; ctx.font="italic 15px Trebuchet MS";
-    centerWrap(ctx, "“"+TR_QUOTES.arena+"”", W/2, H*0.28, W*0.74, 23);
-    ctx.fillStyle="#d9c69a"; ctx.font="15px Trebuchet MS";
-    centerWrap(ctx, "Theodore Roosevelt lived every chapter of this game — sickly boy, cowboy, "+
-      "soldier, conservationist, and President. He died at Sagamore Hill on January 6, 1919, "+
-      "age 60. “Death had to take him sleeping,” said Vice President Thomas R. Marshall, "+
-      "“for if Roosevelt had been awake, there would have been a fight.”",
-      W/2, H*0.6, W*0.74, 22);
-    ctx.fillStyle="#ffd966"; ctx.font="bold 15px Trebuchet MS"; ctx.fillText(cue("Press  ENTER  to return to the title","Tap to return to the title"), W/2, H*0.93);
+    ctx.fillStyle="#ffd966"; ctx.font="bold 34px Trebuchet MS"; ctx.fillText("THE MAN IN THE ARENA", W/2, H*0.14);
+    ctx.fillStyle="#fff"; ctx.font="italic 14px Trebuchet MS";
+    centerWrap(ctx, "“"+TR_QUOTES.arena+"”", W/2, H*0.22, W*0.74, 21);
+
+    if (allCleared()){
+      // ---- completion reward: promo code panel ----
+      const pw=W*0.62, px=W/2, py=H*0.46, ph=H*0.34;
+      ctx.fillStyle="rgba(20,16,10,.9)"; Art.rr(ctx, px-pw/2, py, pw, ph, 14); ctx.fill();
+      ctx.strokeStyle="#d9b24a"; ctx.lineWidth=3; Art.rr(ctx, px-pw/2, py, pw, ph, 14); ctx.stroke();
+      ctx.fillStyle="#8be28b"; ctx.font="bold 20px Trebuchet MS"; ctx.fillText("★ "+REWARD.headline+" ★", px, py+34);
+      ctx.fillStyle="#fff"; ctx.font="15px Trebuchet MS";
+      centerWrap(ctx, "As a reward, enjoy "+REWARD.offer+" at the Theodore Roosevelt Presidential Library.", px, py+60, pw-50, 20);
+      // the code, big and boxed
+      ctx.fillStyle="#1d1610"; Art.rr(ctx, px-130, py+ph*0.52, 260, 46, 8); ctx.fill();
+      ctx.strokeStyle="#ffd966"; ctx.lineWidth=2; Art.rr(ctx, px-130, py+ph*0.52, 260, 46, 8); ctx.stroke();
+      ctx.fillStyle="#ffd966"; ctx.font="bold 30px Trebuchet MS"; ctx.fillText(REWARD.code, px, py+ph*0.52+33);
+      ctx.fillStyle="#d9c69a"; ctx.font="12px Trebuchet MS";
+      ctx.fillText("Use this code with a paid adult ticket. (One per visit.)", px, py+ph-12);
+      // the claim button + return cue are HTML overlays (see updateRewardUI)
+    } else {
+      // not all cleared yet — the usual legacy text
+      ctx.fillStyle="#d9c69a"; ctx.font="15px Trebuchet MS";
+      centerWrap(ctx, "Theodore Roosevelt lived every chapter of this game — sickly boy, cowboy, "+
+        "soldier, conservationist, and President. He died at Sagamore Hill on January 6, 1919, "+
+        "age 60. “Death had to take him sleeping,” said Vice President Thomas R. Marshall, "+
+        "“for if Roosevelt had been awake, there would have been a fight.”",
+        W/2, H*0.52, W*0.74, 22);
+      ctx.fillStyle="#cdbf9c"; ctx.font="13px Trebuchet MS";
+      centerWrap(ctx, "Tip: clear all 10 chapters to unlock a special reward from the Library!", W/2, H*0.84, W*0.7, 18);
+    }
+    ctx.fillStyle="#ffd966"; ctx.font="bold 14px Trebuchet MS"; ctx.fillText(cue("Press  ENTER  to return to the title","Tap to return to the title"), W/2, H*0.95);
   }
 
   /* ---------------- Key handlers ---------------- */
@@ -819,7 +875,7 @@
           ctx.fillStyle="rgba(0,0,0,.4)"; ctx.fillRect(0,H-26,W,26);
           ctx.fillStyle="#fff"; ctx.font="12px Trebuchet MS"; ctx.textAlign="center"; ctx.fillText(mg.cfg.controls, W/2, H-9);
         }
-        if(mg.status==="won"){ Audio2.sfx.success(); state=S.RECAP; }
+        if(mg.status==="won"){ Audio2.sfx.success(); markCleared(CHAPTERS[chapterIdx].id); state=S.RECAP; }
         else if(mg.status==="lost"){ Audio2.sfx.fail(); loseFrom="mg"; state=S.LOSE; }
         break;
       case S.RECAP: drawRecap();
@@ -847,6 +903,13 @@
       const showLogo = (state===S.MENU || state===S.SELECT ||
                         state===S.RECAP || state===S.WIN || state===S.END);
       trplLogo.classList.toggle("show", showLogo);
+    }
+
+    // Completion reward: the claim button appears on the ending only when every
+    // chapter has been cleared.
+    if(claimBtn && claimBtn.classList){
+      if(claimBtn.setAttribute) claimBtn.setAttribute("href", REWARD.url);
+      claimBtn.classList.toggle("show", state===S.END && allCleared());
     }
 
     if(flashT>0){ flashT--; ctx.save(); ctx.globalAlpha=Math.min(1,flashT/40);
