@@ -7,6 +7,7 @@
 const Assets = (() => {
   const bg = {};        // chapterId -> Image
   const status = {};    // chapterId -> "loading" | "ok" | "fail"
+  const VER = "20260606";   // cache-buster — keep in sync with index.html ?v=
 
   function load(){
     if (typeof CHAPTERS === "undefined") return;
@@ -15,7 +16,7 @@ const Assets = (() => {
       status[ch.id] = "loading";
       img.onload  = () => { status[ch.id] = "ok"; bg[ch.id] = img; };
       img.onerror = () => { status[ch.id] = "fail"; bg[ch.id] = null; };
-      img.src = "assets/bg/" + ch.bg;
+      img.src = "assets/bg/" + ch.bg + "?v=" + VER;
       bg[ch.id] = img; // keep a ref so it isn't GC'd
     }
   }
