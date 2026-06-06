@@ -92,7 +92,9 @@ Select you simply tap the chapter card you want** to start it (the d-pad + ENTER
 still work too). On cutscenes, mini-game intros, and the recap/result screens, just
 **tap the screen** to continue. The game is 16:9, so it prompts you to rotate to
 **landscape** in portrait. These controls are rendered **only on touch devices** —
-desktop is unchanged and shows nothing extra.
+desktop is unchanged and shows nothing extra. On touch, the on-canvas keyboard
+cues ("Press ENTER…", "Press S to skip", the controls strip) are hidden or
+rephrased to "Tap…", so the screen relies on the buttons and tap-to-continue.
 
 **Full screen on mobile.** Browsers only allow fullscreen from a tap (it can't be
 triggered automatically on rotate). So on a phone you get a clean start flow:

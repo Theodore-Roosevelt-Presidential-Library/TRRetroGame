@@ -12,6 +12,13 @@
   const trplLogo = document.getElementById("trpl-logo");   // clickable TRPL wordmark overlay
 
   /* ---------------- Input ---------------- */
+  // Touch device? On phones we hide keyboard cues ("Press ENTER…") and let the
+  // on-screen buttons / tap-to-continue speak for themselves.
+  const IS_TOUCH = (("ontouchstart" in window) ||
+                    (typeof navigator !== "undefined" && navigator.maxTouchPoints > 0)) &&
+                   !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+  // Pick the keyboard wording on desktop, the touch wording (or nothing) on mobile.
+  function cue(kbText, touchText){ return IS_TOUCH ? (touchText || "") : kbText; }
   const keysDown = new Set();
   const keysPressed = new Set();
   const input = { down: c => keysDown.has(c), pressed: c => keysPressed.has(c) };
@@ -355,10 +362,12 @@
       ctx.fillStyle="#fff"; ctx.font="15px Trebuchet MS"; ctx.fillText(L.factPop, W/2, H*0.12+42);
       ctx.restore();
     }
-    // controls hint
-    ctx.fillStyle="rgba(0,0,0,.4)"; ctx.fillRect(0,H-26,W,26);
-    ctx.fillStyle="#fff"; ctx.font="13px Trebuchet MS"; ctx.textAlign="center";
-    ctx.fillText("◄ ► RUN   ·   SPACE / ↑ JUMP (press twice = double-jump)   ·   STOMP foes from above   ·   grab ★ for TR facts", W/2, H-9);
+    // controls hint (keyboard wording on desktop; touch users have buttons)
+    if(!IS_TOUCH){
+      ctx.fillStyle="rgba(0,0,0,.4)"; ctx.fillRect(0,H-26,W,26);
+      ctx.fillStyle="#fff"; ctx.font="13px Trebuchet MS"; ctx.textAlign="center";
+      ctx.fillText("◄ ► RUN   ·   SPACE / ↑ JUMP (press twice = double-jump)   ·   STOMP foes from above   ·   grab ★ for TR facts", W/2, H-9);
+    }
   }
 
   /* Era-correct, detailed enemy sprites. Each drawn with feet at origin,
@@ -602,10 +611,13 @@
     ctx.fillStyle="#fff"; ctx.font="bold 52px Trebuchet MS"; ctx.fillText("ROUGH RIDER", cx, H*0.28);
     ctx.fillStyle="#ffd966"; ctx.font="bold 21px Trebuchet MS"; ctx.fillText("The Theodore Roosevelt Adventure", cx, H*0.36);
     ctx.shadowBlur=0;
-    ctx.fillStyle="#fff"; ctx.font="18px Trebuchet MS"; ctx.fillText("Press  ENTER  to begin his life's journey", cx, H*0.47);
+    ctx.fillStyle="#fff"; ctx.font="18px Trebuchet MS";
+    ctx.fillText(cue("Press  ENTER  to begin his life's journey","Tap  ▶ Start  below"), cx, H*0.47);
     ctx.fillStyle="#e8dcc0"; ctx.font="14px Trebuchet MS";
-    ctx.fillText("Press  C  for Chapter Select", cx, H*0.54);
-    ctx.fillText("M = mute     F = fullscreen", cx, H*0.59);
+    if(!IS_TOUCH){
+      ctx.fillText("Press  C  for Chapter Select", cx, H*0.54);
+      ctx.fillText("M = mute     F = fullscreen", cx, H*0.59);
+    }
     ctx.fillStyle="#cdbf9c"; ctx.font="12px Trebuchet MS";
     ctx.fillText("10 chapters across his whole life —", cx, H*0.94);
     ctx.fillText("platforming, treasure, and a mini-game each.", cx, H*0.975);
@@ -664,7 +676,7 @@
     ctx.fillStyle="#fff"; ctx.font="14px Trebuchet MS"; by=centerWrap(ctx, ch.objective||"Reach the flag at the end of the stage.", px, by, W*0.54, 19)+6;
     ctx.fillStyle="#e88a6a"; ctx.font="bold 13px Trebuchet MS"; ctx.fillText("WATCH OUT FOR", px, by); by+=20;
     ctx.fillStyle="#fff"; ctx.font="14px Trebuchet MS"; centerWrap(ctx, ch.foes||"", px, by, W*0.54, 19);
-    ctx.fillStyle="#ffd966"; ctx.font="bold 15px Trebuchet MS"; ctx.fillText("Press  ENTER  to start the level ►", px, H*0.80);
+    ctx.fillStyle="#ffd966"; ctx.font="bold 15px Trebuchet MS"; ctx.fillText(cue("Press  ENTER  to start the level ►","Tap to start the level ►"), px, H*0.80);
   }
 
   function drawMGIntro(){
@@ -681,7 +693,7 @@
     ctx.strokeStyle="#7ad0e0"; ctx.lineWidth=2; Art.rr(ctx,W*0.22,H*0.49,W*0.56,H*0.17,10); ctx.stroke();
     ctx.fillStyle="#7ad0e0"; ctx.font="bold 14px Trebuchet MS"; ctx.fillText("⌨  CONTROLS", W/2, H*0.535);
     ctx.fillStyle="#fff"; ctx.font="16px Trebuchet MS"; centerWrap(ctx, cfg.controls, W/2, H*0.575, W*0.5, 22);
-    ctx.fillStyle="#ffd966"; ctx.font="bold 16px Trebuchet MS"; ctx.fillText("Press  ENTER / SPACE  to play", W/2, H*0.74);
+    ctx.fillStyle="#ffd966"; ctx.font="bold 16px Trebuchet MS"; ctx.fillText(cue("Press  ENTER / SPACE  to play","Tap to play ►"), W/2, H*0.74);
   }
 
   function drawResult(won){
@@ -694,7 +706,7 @@
       ctx.fillStyle="rgba(20,16,10,.82)"; Art.rr(ctx,W*0.12,H*0.68,W*0.76,H*0.22,12); ctx.fill();
       ctx.fillStyle="#fff"; ctx.font="16px Trebuchet MS"; centerWrap(ctx, ch.minigame.win, W/2, H*0.74, W*0.68, 22);
       ctx.fillStyle="#ffd966"; ctx.font="bold 15px Trebuchet MS";
-      ctx.fillText(chapterIdx<CHAPTERS.length-1?"Press  ENTER  for the next chapter ►":"Press  ENTER  to see his legacy ►", W/2, H*0.87);
+      ctx.fillText(chapterIdx<CHAPTERS.length-1?cue("Press  ENTER  for the next chapter ►","Tap for the next chapter ►"):cue("Press  ENTER  to see his legacy ►","Tap to see his legacy ►"), W/2, H*0.87);
     } else {
       const fromLevel = loseFrom==="level";
       ctx.fillStyle="#e57373"; ctx.font="bold 40px Trebuchet MS";
@@ -705,8 +717,8 @@
         : "\"It is hard to fail, but it is worse never to have tried to succeed.\" — Try again!",
         W/2, H*0.42, W*0.62, 24);
       ctx.fillStyle="#ffd966"; ctx.font="bold 16px Trebuchet MS";
-      ctx.fillText(fromLevel?"Press  ENTER  to restart the stage":"Press  ENTER  to retry the mini-game", W/2, H*0.56);
-      ctx.fillStyle="#cfc3a6"; ctx.font="14px Trebuchet MS"; ctx.fillText("(Press  S  to skip to the next chapter)", W/2, H*0.62);
+      ctx.fillText(fromLevel?cue("Press  ENTER  to restart the stage","Tap to restart the stage"):cue("Press  ENTER  to retry the mini-game","Tap to retry the mini-game"), W/2, H*0.56);
+      if(!IS_TOUCH){ ctx.fillStyle="#cfc3a6"; ctx.font="14px Trebuchet MS"; ctx.fillText("(Press  S  to skip to the next chapter)", W/2, H*0.62); }
     }
   }
 
@@ -747,7 +759,7 @@
     ctx.fillStyle="#d9c69a"; ctx.font="14px Trebuchet MS";
     ctx.fillText("Collected "+recap.got.length+" of "+facts.length+" history treasures", W/2, H*0.82);
     ctx.fillStyle="#ffd966"; ctx.font="bold 15px Trebuchet MS";
-    ctx.fillText("Take your time — press  ENTER  when you're ready to continue ►", W/2, H*0.88);
+    ctx.fillText(cue("Take your time — press  ENTER  when you're ready to continue ►","Take your time — tap to continue ►"), W/2, H*0.88);
   }
 
   function drawEnding(){
@@ -762,7 +774,7 @@
       "age 60. “Death had to take him sleeping,” said Vice President Thomas R. Marshall, "+
       "“for if Roosevelt had been awake, there would have been a fight.”",
       W/2, H*0.6, W*0.74, 22);
-    ctx.fillStyle="#ffd966"; ctx.font="bold 15px Trebuchet MS"; ctx.fillText("Press  ENTER  to return to the title", W/2, H*0.93);
+    ctx.fillStyle="#ffd966"; ctx.font="bold 15px Trebuchet MS"; ctx.fillText(cue("Press  ENTER  to return to the title","Tap to return to the title"), W/2, H*0.93);
   }
 
   /* ---------------- Key handlers ---------------- */
@@ -803,8 +815,10 @@
         if(input.pressed("Escape")){ state=S.MENU; } break;
       case S.MG:
         mg.update(input); mg.draw(ctx,t);
-        ctx.fillStyle="rgba(0,0,0,.4)"; ctx.fillRect(0,H-26,W,26);
-        ctx.fillStyle="#fff"; ctx.font="12px Trebuchet MS"; ctx.textAlign="center"; ctx.fillText(mg.cfg.controls, W/2, H-9);
+        if(!IS_TOUCH){
+          ctx.fillStyle="rgba(0,0,0,.4)"; ctx.fillRect(0,H-26,W,26);
+          ctx.fillStyle="#fff"; ctx.font="12px Trebuchet MS"; ctx.textAlign="center"; ctx.fillText(mg.cfg.controls, W/2, H-9);
+        }
         if(mg.status==="won"){ Audio2.sfx.success(); state=S.RECAP; }
         else if(mg.status==="lost"){ Audio2.sfx.fail(); loseFrom="mg"; state=S.LOSE; }
         break;
