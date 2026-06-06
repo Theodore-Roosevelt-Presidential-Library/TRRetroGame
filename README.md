@@ -89,13 +89,15 @@ to rotate to **landscape** in portrait. These controls are rendered **only on
 touch devices** — desktop is unchanged and shows nothing extra.
 
 **Full screen on mobile.** Browsers only allow fullscreen from a tap (it can't be
-triggered automatically on rotate), so once you turn the phone to landscape a
-**"⛶ Tap for full screen"** banner appears at the top; tapping it enters
-fullscreen and locks to landscape, hiding the browser chrome. The code tries every
+triggered automatically on rotate). So on a phone you get a clean start flow:
+hold the device in **portrait** and you see a "rotate to landscape" hint; rotate to
+**landscape** and a full-screen **"Tap to Start"** splash appears. One tap on it
+enters fullscreen, locks the orientation to landscape (hiding the browser chrome),
+and drops you on the title screen ready to play. The fullscreen code tries every
 vendor prefix and falls back to the document element for broad support. iOS Safari
-doesn't expose the Fullscreen API on web pages, so the banner is hidden there —
-but the page includes Apple web-app meta tags, so iPhone users can **Share → Add
-to Home Screen** and launch it chromeless/full-screen from the icon.
+doesn't expose the Fullscreen API to web pages, so there the splash still starts
+the game normally — and the page ships Apple web-app meta tags so iPhone users can
+**Share → Add to Home Screen** to launch it chromeless from the icon.
 
 ---
 

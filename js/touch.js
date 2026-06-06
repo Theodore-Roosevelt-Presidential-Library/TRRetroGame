@@ -90,17 +90,33 @@
   tapLayer.addEventListener("touchstart", e => { e.preventDefault(); T.tap("Enter"); }, {passive:false});
   ui.appendChild(tapLayer);
 
-  // ---- "Tap for Fullscreen" banner ----
-  // Fullscreen can only be entered from a user gesture, so we can't auto-trigger
-  // it on rotate. Instead, when the phone is in landscape and not yet fullscreen
-  // (and the browser supports it), show a one-tap banner that enters fullscreen +
-  // locks landscape, hiding the browser chrome.
+  // ---- "Tap to Start" full-screen splash ----
+  // Fullscreen can only be entered from a user gesture (browsers reject it on
+  // rotate). So once the phone is in landscape, we cover the screen with a single
+  // big "Tap to Start" button. Tapping it: enters fullscreen + locks landscape,
+  // then begins the game — one clean gesture.
   const FS = window.TRFull || null;
-  const fsBanner = document.createElement("button");
-  fsBanner.className = "tfsbanner";
-  fsBanner.innerHTML = "⛶ &nbsp;Tap for full screen";
-  fsBanner.addEventListener("touchstart", e => { e.preventDefault(); if(FS) FS.toggle(); }, {passive:false});
-  ui.appendChild(fsBanner);
+  const startOverlay = document.createElement("div");
+  startOverlay.className = "tstart";
+  startOverlay.innerHTML =
+    '<div class="tstart-card">' +
+      '<div class="tstart-title">ROUGH RIDER</div>' +
+      '<div class="tstart-sub">The Theodore Roosevelt Adventure</div>' +
+      '<div class="tstart-btn">▶ &nbsp;Tap to Start</div>' +
+      '<div class="tstart-note">Enters full screen</div>' +
+    '</div>';
+  let started = false;             // becomes true after the first Tap to Start
+  startOverlay.addEventListener("touchstart", e => {
+    e.preventDefault();
+    if (FS && FS.supported && FS.supported() && !(FS.active && FS.active())) {
+      FS.toggle();                 // fullscreen + landscape lock (no-op where unsupported)
+    }
+    started = true;
+    startOverlay.classList.remove("show");
+    // Drop the player onto the normal title screen (fullscreen now active), where
+    // they can choose Start or Chapter Select with the on-screen controls.
+  }, {passive:false});
+  ui.appendChild(startOverlay);
 
   function isLandscape(){
     return (window.matchMedia && window.matchMedia("(orientation: landscape)").matches) ||
@@ -109,9 +125,13 @@
   function refreshFsBanner(){
     const supported = FS && FS.supported && FS.supported();
     const active    = FS && FS.active && FS.active();
-    // show only when: supported, in landscape, and not already fullscreen
-    fsBanner.style.display = (supported && isLandscape() && !active) ? "flex" : "none";
-    bFull.style.display = supported ? "" : "none";   // hide the corner FS button where unsupported (e.g. iOS Safari)
+    // Show the Tap-to-Start splash only before the player has started, while in
+    // landscape (portrait already shows the rotate hint). It launches the game.
+    const showStart = !started && isLandscape();
+    startOverlay.classList.toggle("show", showStart);
+    // corner fullscreen button: keep it only where the API is supported and the
+    // player is already in the game (so they can re-enter FS if they exited)
+    bFull.style.display = supported ? "" : "none";
   }
 
   // ---- per-screen adaptation: show only the buttons each screen needs ----
