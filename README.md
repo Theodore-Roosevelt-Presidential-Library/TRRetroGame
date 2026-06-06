@@ -78,13 +78,19 @@ of the screen while you play. The per-game keys are listed in
 
 **On a phone or tablet (touch)**
 
-On touch devices the game shows on-screen controls automatically — a left/right
-D-pad at bottom-left, a large action button at bottom-right (labelled for the
-moment: **JUMP / FIRE / DODGE / GO**), and small **back / mute / fullscreen**
-buttons at top-right. The boxing match adds **J/K** punch buttons, the gunnery
-drill adds **▲/▼** aim arrows, and the telegraph race shows an on-screen letter
-keypad (the requested letter lights up). On menus, cutscenes, and the recap
-screen, just **tap the screen** to continue. The game is 16:9, so it prompts you
+On touch devices the game shows on-screen controls automatically — a **4-way
+D-pad** at bottom-left (▲▼◄►) and a large action button at bottom-right
+(labelled for the moment: **JUMP / FIRE / DODGE / LIGHT / GO**), plus small
+**back / mute / fullscreen** buttons at top-right. The d-pad's ▲/▼ are active
+wherever vertical movement is needed — the **NYPD Midnight Ramble** (move up/down
+through the streets), the **Naval Gunnery** drill (aim up/down), and chapter
+select. The boxing match adds **J/K** punch buttons, and the telegraph race shows
+an on-screen letter keypad (the requested letter lights up).
+
+The **title screen** shows **▶ Start** and **≡ Chapters** buttons, so on mobile
+you can jump straight to any chapter: tap **Chapters**, use the d-pad to highlight
+one, then **▶ Play chapter**. On cutscenes, mini-game intros, and the recap/result
+screens, just **tap the screen** to continue. The game is 16:9, so it prompts you
 to rotate to **landscape** in portrait. These controls are rendered **only on
 touch devices** — desktop is unchanged and shows nothing extra.
 

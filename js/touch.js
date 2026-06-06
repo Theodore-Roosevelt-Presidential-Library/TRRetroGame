@@ -85,20 +85,18 @@
   const dpad = document.createElement("div"); dpad.className = "tcluster tleft";
   const bL = holdBtn("◄", "ArrowLeft", "dpad");
   const bR = holdBtn("►", "ArrowRight", "dpad");
-  dpad.appendChild(bL); dpad.appendChild(bR);
+  // left cluster is a full 4-way cross: up & down for top-down games (patrol)
+  // and chapter-select navigation; left/right for everything that moves.
+  const bUp = holdBtn("▲", "ArrowUp", "dpad");
+  const bDn = holdBtn("▼", "ArrowDown", "dpad");
+  dpad.appendChild(bUp); dpad.appendChild(bL); dpad.appendChild(bR); dpad.appendChild(bDn);
   ui.appendChild(dpad);
 
   // ---- right cluster: action buttons (relabeled per screen) ----
   const act = document.createElement("div"); act.className = "tcluster tright";
-  // Primary action — Space (jump / paddle / fire / confirm). Held for movement-y games.
-  const bA = holdBtn("A", "Space", "big");
-  // Up — used as jump alt + menu navigation
-  const bUp = holdBtn("▲", "ArrowUp", "");
-  const bDn = holdBtn("▼", "ArrowDown", "");
-  // Secondary (boxing K / generic) and tertiary (boxing J)
-  const bK = tapBtn("K", "KeyK", "");
-  const bJ = tapBtn("J", "KeyJ", "");
-  act.appendChild(bUp); act.appendChild(bDn);
+  const bA = holdBtn("A", "Space", "big");          // jump / paddle / fire / light / confirm
+  const bK = tapBtn("K", "KeyK", "");               // boxing cross
+  const bJ = tapBtn("J", "KeyJ", "");               // boxing jab
   act.appendChild(bJ); act.appendChild(bK); act.appendChild(bA);
   ui.appendChild(act);
 
@@ -112,11 +110,22 @@
   util.appendChild(bMenu); util.appendChild(bMute); util.appendChild(bFull);
   ui.appendChild(util);
 
-  // ---- big "confirm" tap target for menus/cutscenes/recap (Enter) ----
-  // Implemented as tapping the canvas area; we add a transparent layer that is
-  // only active on non-playing screens.
+  // ---- title-screen menu buttons (Start + Chapter Select) ----
+  const menuBtns = document.createElement("div"); menuBtns.className="tmenu";
+  const bStart = tapBtn("▶ Start", "Enter", "menu");
+  const bChapters = tapBtn("≡ Chapters", "KeyC", "menu");
+  menuBtns.appendChild(bStart); menuBtns.appendChild(bChapters);
+  ui.appendChild(menuBtns);
+
+  // ---- chapter-select confirm button ----
+  const selBtns = document.createElement("div"); selBtns.className="tsel";
+  const bPlay = tapBtn("▶ Play chapter", "Enter", "menu");
+  selBtns.appendChild(bPlay);
+  ui.appendChild(selBtns);
+
+  // ---- big "confirm" tap target for cutscenes / intro / recap / results ----
   const tapLayer = document.createElement("div"); tapLayer.className="ttap";
-  tapLayer.innerHTML = '<span>TAP</span>';
+  tapLayer.innerHTML = '<span>TAP TO CONTINUE</span>';
   tapLayer.addEventListener("touchstart", e => { e.preventDefault(); T.tap("Enter"); }, {passive:false});
   ui.appendChild(tapLayer);
 
@@ -174,35 +183,50 @@
 
   // ---- per-screen adaptation: show only the buttons each screen needs ----
   const PLAY_STATES = new Set(["level","mg"]);
+  // mini-games that need vertical movement / aiming on the d-pad
+  const VERT_MG = new Set(["patrol","gunnery"]);   // patrol = move up/down, gunnery = aim up/down
   function refresh(){
     const info = T.info();
-    const playing = PLAY_STATES.has(info.state);
-    const boxing  = info.state==="mg" && info.mgType==="boxing";
-    const gunnery = info.state==="mg" && info.mgType==="gunnery";
-    const telegraph = info.state==="mg" && info.mgType==="telegraph";
-    const selecting = info.state==="select";
+    const st = info.state, mt = info.mgType;
+    const playing = PLAY_STATES.has(st);
+    const boxing  = st==="mg" && mt==="boxing";
+    const gunnery = st==="mg" && mt==="gunnery";
+    const telegraph = st==="mg" && mt==="telegraph";
+    const selecting = st==="select";
+    const onMenu = st==="menu";
+    const needVert = selecting || (st==="mg" && VERT_MG.has(mt));   // patrol/gunnery/select use ▲▼
 
-    // movement clusters only while playing or selecting a chapter
+    // movement d-pad: while playing or choosing a chapter
     dpad.style.display = (playing || selecting) ? "" : "none";
-    act.style.display  = (playing || selecting) ? "" : "none";
+    bUp.style.display = needVert ? "" : "none";
+    bDn.style.display = needVert ? "" : "none";
+    // left/right are always part of the d-pad when it shows
+    bL.style.display = ""; bR.style.display = "";
 
-    // up/down arrows: gunnery (aim) + chapter select; jump uses A elsewhere
-    bUp.style.display = (gunnery || selecting) ? "" : "none";
-    bDn.style.display = (gunnery || selecting) ? "" : "none";
-    // boxing punch buttons only in the boxing match
+    // action cluster: shown while actively playing a mini-game/level
+    act.style.display = playing ? "" : "none";
     bJ.style.display = boxing ? "" : "none";
     bK.style.display = boxing ? "" : "none";
-    // primary A button: hidden in telegraph (it's all letters) and chapter select (use TAP=Enter)
+    // primary A button: hidden in telegraph (all letters) and in patrol it's the LANTERN
     bA.style.display = (playing && !telegraph) ? "" : "none";
     bA.innerHTML = boxing ? "DODGE✦" :
                    gunnery ? "FIRE" :
-                   (info.state==="level") ? "JUMP" : "GO";
+                   (st==="mg" && mt==="patrol") ? "LIGHT" :
+                   (st==="level") ? "JUMP" : "GO";
 
-    // telegraph: build a compact letter keypad in the action cluster
+    // telegraph letter keypad
     setupLetters(telegraph, info.letter);
 
-    // the big TAP-to-continue layer: on every NON-playing screen
-    tapLayer.style.display = playing ? "none" : "flex";
+    // title-screen menu buttons (Start / Chapter Select)
+    menuBtns.style.display = onMenu ? "flex" : "none";
+    // chapter-select Play button (▲▼◄► choose, then tap Play)
+    selBtns.style.display = selecting ? "flex" : "none";
+
+    // the big TAP-TO-CONTINUE layer: only on the passive "advance" screens
+    // (cutscene intro, mini-game intro, recap, win, lose, ending) — NOT on the
+    // title or chapter-select, which have their own buttons.
+    const continueScreen = !playing && !onMenu && !selecting;
+    tapLayer.style.display = continueScreen ? "flex" : "none";
   }
 
   // --- telegraph letter pad (only while that mini-game runs) ---
