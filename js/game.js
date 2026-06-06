@@ -9,6 +9,7 @@
   const ctx = canvas.getContext("2d");
   const W = canvas.width, H = canvas.height;
   const loading = document.getElementById("loading");
+  const trplLogo = document.getElementById("trpl-logo");   // clickable TRPL wordmark overlay
 
   /* ---------------- Input ---------------- */
   const keysDown = new Set();
@@ -25,6 +26,21 @@
   });
   window.addEventListener("keyup", e => keysDown.delete(e.code));
   canvas.addEventListener("mousedown", () => Audio2.resume());
+
+  /* ---- Touch bridge (used only by touch.js on touch devices) ----
+     Mirrors the keyboard exactly: down() sets the held + edge-press sets;
+     up() clears the held set. info() lets the touch UI relabel its buttons
+     for the current screen / mini-game.                                     */
+  const touchBridge = {
+    down(code){ if(!keysDown.has(code)) keysPressed.add(code); keysDown.add(code); Audio2.resume(); },
+    up(code){ keysDown.delete(code); },
+    tap(code){ keysPressed.add(code); Audio2.resume(); },
+    toggleMute(){ const m=Audio2.toggleMute(); flash(m?"Muted":"Sound on"); return m; },
+    toggleFull(){ toggleFull(); },
+    info(){ return { state, mgType: mg ? mg.cfg.type : null,
+                     letter: (mg && mg.cur) ? mg.cur.ch : null }; },
+  };
+  if (typeof window !== "undefined") window.TRTouch = touchBridge;
 
   let flashMsg = "", flashT = 0;
   function flash(m){ flashMsg = m; flashT = 80; }
@@ -743,6 +759,14 @@
     }
 
     particles.update(); particles.draw(ctx);
+
+    // Show the TRPL wordmark (links to trlibrary.com) on the intro + summary
+    // screens, where it's informative and not in the way of gameplay.
+    if(trplLogo && trplLogo.classList){
+      const showLogo = (state===S.MENU || state===S.SELECT ||
+                        state===S.RECAP || state===S.WIN || state===S.END);
+      trplLogo.classList.toggle("show", showLogo);
+    }
 
     if(flashT>0){ flashT--; ctx.save(); ctx.globalAlpha=Math.min(1,flashT/40);
       ctx.fillStyle="#000a"; Art.rr(ctx,W/2-70,16,140,30,8); ctx.fill();

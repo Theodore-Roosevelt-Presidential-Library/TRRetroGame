@@ -76,6 +76,18 @@ Each mini-game shows its own controls on an intro card **and** along the bottom
 of the screen while you play. The per-game keys are listed in
 [The 10 chapters](#the-10-chapters).
 
+**On a phone or tablet (touch)**
+
+On touch devices the game shows on-screen controls automatically — a left/right
+D-pad at bottom-left, a large action button at bottom-right (labelled for the
+moment: **JUMP / FIRE / DODGE / GO**), and small **back / mute / fullscreen**
+buttons at top-right. The boxing match adds **J/K** punch buttons, the gunnery
+drill adds **▲/▼** aim arrows, and the telegraph race shows an on-screen letter
+keypad (the requested letter lights up). On menus, cutscenes, and the recap
+screen, just **tap the screen** to continue. The game is 16:9, so it prompts you
+to rotate to **landscape** in portrait. These controls are rendered **only on
+touch devices** — desktop is unchanged and shows nothing extra.
+
 ---
 
 ## How the game is structured
@@ -274,12 +286,13 @@ TRRetroGame/
     ├── sprites.js          ← anime TR (ages/outfits, walk/run) + scenery +
     │                          the background compositor (Art.*)
     ├── minigames.js        ← the 10 mini-game classes + shared detailed props
-    └── game.js             ← engine: loop, input, state machine, platformer
-                               levels, enemy sprites, HUD, menus, recap screen
+    ├── game.js             ← engine: loop, input, state machine, platformer
+    │                          levels, enemy sprites, HUD, menus, recap screen
+    └── touch.js            ← touch-only on-screen controls (no-ops on desktop)
 ```
 
 Scripts load in this order from `index.html`:
-`data.js → assets.js → audio.js → sprites.js → minigames.js → game.js`.
+`data.js → assets.js → audio.js → sprites.js → minigames.js → game.js → touch.js`.
 
 ---
 
@@ -342,7 +355,17 @@ It builds each platformer level procedurally (`buildLevel`), runs physics and
 collision (`updateLevel`), renders the world and HUD (`drawLevel`), draws the
 era-correct enemies (`drawFoe`), and handles the cutscene, intro, recap, win/lose,
 and ending screens. The main `frame()` loop clears the canvas every frame, then
-dispatches on the current state.
+dispatches on the current state. It also exposes a small `window.TRTouch` bridge
+(`down`/`up`/`tap`/`info`) that mirrors the keyboard, used only by `touch.js`.
+
+### `touch.js` — touch controls (mobile only)
+A self-contained module that returns immediately unless the browser reports a
+**coarse (touch) pointer**, so it builds *nothing* on desktop. On a phone/tablet
+it overlays HTML buttons inside `#frame` and feeds `window.TRTouch` — which sets
+the exact same `keysDown`/`keysPressed` sets the keyboard uses — so no game logic
+changes. The button set adapts per screen (movement + action while playing,
+J/K in boxing, ▲/▼ in gunnery, a letter keypad in telegraph, and tap-to-continue
+on menus). All styling is scoped to `body.is-touch` in `style.css`.
 
 ### `audio.js` — `Audio2.*`
 `Audio2.resume()`, `Audio2.playMusic(name)`, `Audio2.stopMusic()`,
@@ -412,6 +435,11 @@ quotations are reproduced verbatim from those sources: **"Speak softly and carry
 big stick; you will go far,"** and the closing **"Man in the Arena"** passage.
 Roosevelt's death is presented in the closing legacy screen rather than inside the
 Amazon chapter, to keep each chapter's events period-accurate.
+
+The **TRPL wordmark** (`assets/trpl_wordmark.svg`) appears on the title, chapter
+select, recap, win, and legacy screens (top-left), and links out in a new tab to
+the Library at **https://www.trlibrary.com/**. Its visibility is toggled by state
+in `game.js`; it's hidden during active play so it never covers the action.
 
 ---
 

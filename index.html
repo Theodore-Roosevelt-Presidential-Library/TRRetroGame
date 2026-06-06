@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>Rough Rider — The Theodore Roosevelt Adventure</title>
 <!-- Favicon: Theodore Roosevelt (Rough Rider) sprite in a gold medallion -->
 <link rel="icon" href="assets/favicon.ico" sizes="any" />
@@ -15,9 +15,21 @@
 <body>
   <div id="frame">
     <canvas id="game" width="960" height="540"></canvas>
+    <!-- TRPL wordmark — links to the Theodore Roosevelt Presidential Library.
+         Shown only on intro / chapter-summary screens (toggled by game.js). -->
+    <a id="trpl-logo" href="https://www.trlibrary.com/" target="_blank" rel="noopener noreferrer"
+       title="Theodore Roosevelt Presidential Library — trlibrary.com" aria-label="Visit the Theodore Roosevelt Presidential Library">
+      <img src="assets/trpl_wordmark.svg" alt="Theodore Roosevelt Presidential Library" />
+    </a>
     <div id="loading">Loading the Badlands…</div>
   </div>
   <p id="hint">Click the game once, then use the on-screen keys. Press <b>F</b> for fullscreen, <b>M</b> to mute.</p>
+
+  <!-- Shown only on touch phones held in portrait -->
+  <div id="rotate-hint">
+    <div class="rot">📱</div>
+    <div>Rotate your device to landscape<br/>for the best Rough Rider experience.</div>
+  </div>
 
   <!-- Game scripts -->
   <script src="js/data.js"></script>
@@ -26,5 +38,6 @@
   <script src="js/sprites.js"></script>
   <script src="js/minigames.js"></script>
   <script src="js/game.js"></script>
+  <script src="js/touch.js"></script>
 </body>
 </html>
