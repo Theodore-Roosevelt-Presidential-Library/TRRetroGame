@@ -117,10 +117,9 @@
   menuBtns.appendChild(bStart); menuBtns.appendChild(bChapters);
   ui.appendChild(menuBtns);
 
-  // ---- chapter-select confirm button ----
+  // ---- chapter-select hint (chapters are tapped directly on the canvas) ----
   const selBtns = document.createElement("div"); selBtns.className="tsel";
-  const bPlay = tapBtn("▶ Play chapter", "Enter", "menu");
-  selBtns.appendChild(bPlay);
+  selBtns.innerHTML = '<span class="tselhint">Tap a chapter to play</span>';
   ui.appendChild(selBtns);
 
   // ---- big "confirm" tap target for cutscenes / intro / recap / results ----
@@ -194,14 +193,17 @@
     const telegraph = st==="mg" && mt==="telegraph";
     const selecting = st==="select";
     const onMenu = st==="menu";
-    const needVert = selecting || (st==="mg" && VERT_MG.has(mt));   // patrol/gunnery/select use ▲▼
+    const needVert = (st==="mg" && VERT_MG.has(mt));   // patrol (move) / gunnery (aim) use ▲▼
 
-    // movement d-pad: while playing or choosing a chapter
-    dpad.style.display = (playing || selecting) ? "" : "none";
+    // movement d-pad: only while actively playing (chapters are tapped directly)
+    dpad.style.display = playing ? "" : "none";
     bUp.style.display = needVert ? "" : "none";
     bDn.style.display = needVert ? "" : "none";
-    // left/right are always part of the d-pad when it shows
     bL.style.display = ""; bR.style.display = "";
+    // when ▲▼ aren't needed, sit ◄ ► right next to each other (easier to thumb);
+    // when they are, use the 3x3 cross layout
+    dpad.classList.toggle("cross", needVert);
+    dpad.classList.toggle("lr", !needVert);
 
     // action cluster: shown while actively playing a mini-game/level
     act.style.display = playing ? "" : "none";

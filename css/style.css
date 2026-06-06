@@ -84,16 +84,19 @@ body.is-touch #touch-ui .tbtn.util{ width:44px; height:44px; font-size:18px; mar
 body.is-touch #touch-ui .tcluster{
   position:absolute; bottom:10px; display:flex; align-items:flex-end; gap:4px;
 }
-/* left cluster is a 3x3 cross: ▲ on top row, ◄ ► on the middle, ▼ on the bottom */
-body.is-touch #touch-ui .tleft{
-  left:10px; display:grid; grid-template-columns:repeat(3,56px); grid-auto-rows:56px;
+body.is-touch #touch-ui .tleft{ left:10px; }
+body.is-touch #touch-ui .tleft .tbtn{ width:54px; height:54px; margin:0; }
+/* side-by-side ◄ ► for run-only games (thumb-friendly, buttons adjacent) */
+body.is-touch #touch-ui .tleft.lr{ display:flex; gap:8px; }
+/* 3x3 cross when ▲▼ are needed (patrol move / gunnery aim) */
+body.is-touch #touch-ui .tleft.cross{
+  display:grid; grid-template-columns:repeat(3,56px); grid-auto-rows:56px;
   gap:2px; align-items:center; justify-items:center;
 }
-body.is-touch #touch-ui .tleft .tbtn{ width:54px; height:54px; margin:0; }
-body.is-touch #touch-ui .tleft .tbtn[data-code="ArrowUp"]{ grid-column:2; grid-row:1; }
-body.is-touch #touch-ui .tleft .tbtn[data-code="ArrowLeft"]{ grid-column:1; grid-row:2; }
-body.is-touch #touch-ui .tleft .tbtn[data-code="ArrowRight"]{ grid-column:3; grid-row:2; }
-body.is-touch #touch-ui .tleft .tbtn[data-code="ArrowDown"]{ grid-column:2; grid-row:3; }
+body.is-touch #touch-ui .tleft.cross .tbtn[data-code="ArrowUp"]{ grid-column:2; grid-row:1; }
+body.is-touch #touch-ui .tleft.cross .tbtn[data-code="ArrowLeft"]{ grid-column:1; grid-row:2; }
+body.is-touch #touch-ui .tleft.cross .tbtn[data-code="ArrowRight"]{ grid-column:3; grid-row:2; }
+body.is-touch #touch-ui .tleft.cross .tbtn[data-code="ArrowDown"]{ grid-column:2; grid-row:3; }
 body.is-touch #touch-ui .tright{ right:10px; align-items:flex-end; }
 body.is-touch #touch-ui .tutil{ position:absolute; top:8px; right:8px; display:flex; gap:4px; }
 body.is-touch #touch-ui .tbtn.util.off{ opacity:.5; }
@@ -110,6 +113,12 @@ body.is-touch #touch-ui .tbtn.menu{
   background:rgba(217,164,65,.95); box-shadow:0 2px 10px rgba(0,0,0,.45);
 }
 body.is-touch #touch-ui .tbtn.menu.on{ transform:scale(0.96); background:rgba(217,164,65,1); }
+/* chapter-select hint pill (chapters themselves are tapped on the canvas) */
+body.is-touch #touch-ui .tsel .tselhint{
+  display:inline-block; padding:8px 18px; border-radius:18px;
+  font-size:13px; font-weight:bold; color:#1a1410;
+  background:rgba(217,164,65,.9); box-shadow:0 2px 8px rgba(0,0,0,.4);
+}
 /* telegraph letter pad: a compact grid centered low on screen */
 body.is-touch #touch-ui .tletters{
   position:absolute; left:50%; bottom:14px; transform:translateX(-50%);

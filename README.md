@@ -78,21 +78,21 @@ of the screen while you play. The per-game keys are listed in
 
 **On a phone or tablet (touch)**
 
-On touch devices the game shows on-screen controls automatically — a **4-way
-D-pad** at bottom-left (▲▼◄►) and a large action button at bottom-right
-(labelled for the moment: **JUMP / FIRE / DODGE / LIGHT / GO**), plus small
-**back / mute / fullscreen** buttons at top-right. The d-pad's ▲/▼ are active
-wherever vertical movement is needed — the **NYPD Midnight Ramble** (move up/down
-through the streets), the **Naval Gunnery** drill (aim up/down), and chapter
-select. The boxing match adds **J/K** punch buttons, and the telegraph race shows
-an on-screen letter keypad (the requested letter lights up).
+On touch devices the game shows on-screen controls automatically. The left-hand
+D-pad adapts to each game: for run-only stages it's a tight **◄ ►** pair (the two
+buttons sit right next to each other for easy thumbing); for top-down/aiming
+games — the **NYPD Midnight Ramble** (move up/down) and **Naval Gunnery** (aim) —
+it becomes a full **▲▼◄►** cross. The large action button at bottom-right is
+labelled for the moment (**JUMP / FIRE / DODGE / LIGHT / GO**), the boxing match
+adds **J/K** punch buttons, and the telegraph race shows an on-screen letter
+keypad. Small **back / mute / fullscreen** buttons sit at top-right.
 
-The **title screen** shows **▶ Start** and **≡ Chapters** buttons, so on mobile
-you can jump straight to any chapter: tap **Chapters**, use the d-pad to highlight
-one, then **▶ Play chapter**. On cutscenes, mini-game intros, and the recap/result
-screens, just **tap the screen** to continue. The game is 16:9, so it prompts you
-to rotate to **landscape** in portrait. These controls are rendered **only on
-touch devices** — desktop is unchanged and shows nothing extra.
+The **title screen** shows **▶ Start** and **≡ Chapters** buttons. On **Chapter
+Select you simply tap the chapter card you want** to start it (the d-pad + ENTER
+still work too). On cutscenes, mini-game intros, and the recap/result screens, just
+**tap the screen** to continue. The game is 16:9, so it prompts you to rotate to
+**landscape** in portrait. These controls are rendered **only on touch devices** —
+desktop is unchanged and shows nothing extra.
 
 **Full screen on mobile.** Browsers only allow fullscreen from a tap (it can't be
 triggered automatically on rotate). So on a phone you get a clean start flow:

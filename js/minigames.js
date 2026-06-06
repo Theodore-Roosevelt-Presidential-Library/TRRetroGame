@@ -569,8 +569,15 @@ class MGPatrol {
   constructor(env){ this.env=env; this.status="play"; this.x=env.W/2; this.y=env.H*0.6;
     this.caught=0; this.goal=5; this.time=35; this.cops=[]; this.flash=0;
     for(let i=0;i<5;i++) this.spawn(); }
-  spawn(){ this.cops.push({x:rand(80,this.env.W-80),y:rand(this.env.H*0.3,this.env.H*0.9),
-    z:Math.random()<0.5,caught:false}); }
+  spawn(){
+    // keep the spawn clear of the touch controls (d-pad bottom-left, action
+    // button bottom-right) so a shirker can't hide under a button on mobile
+    const W=this.env.W, H=this.env.H, m=120, by=H*0.74;
+    let x,y,tries=0;
+    do { x=rand(80,W-80); y=rand(H*0.3,H*0.9); tries++; }
+    while(tries<20 && y>by && (x<m || x>W-m));    // avoid lower-left / lower-right corners
+    this.cops.push({x,y,z:Math.random()<0.5,caught:false});
+  }
   update(input){
     this.time-=1/60; if(this.time<=0) this.status=this.caught>=this.goal?"won":"lost";
     const sp=3.4;

@@ -27,14 +27,37 @@
   window.addEventListener("keyup", e => keysDown.delete(e.code));
   canvas.addEventListener("mousedown", () => Audio2.resume());
 
+  // Map a screen point to canvas coords (accounts for CSS scaling/letterbox).
+  function toCanvas(clientX, clientY){
+    const r = canvas.getBoundingClientRect();
+    return { x:(clientX-r.left)*(W/r.width), y:(clientY-r.top)*(H/r.height) };
+  }
+  // Direct tap-to-select on the Chapter Select screen (mouse + touch).
+  function handleSelectPointer(clientX, clientY){
+    if (state !== S.SELECT) return false;
+    const p = toCanvas(clientX, clientY);
+    const i = chapterAt(p.x, p.y);
+    if (i >= 0){ chapterIdx = i; Audio2.sfx.select(); startCutscene(); return true; }
+    return false;
+  }
+  canvas.addEventListener("click", e => { handleSelectPointer(e.clientX, e.clientY); });
+  canvas.addEventListener("touchstart", e => {
+    if (state===S.SELECT && e.touches && e.touches[0]){
+      if (handleSelectPointer(e.touches[0].clientX, e.touches[0].clientY)) e.preventDefault();
+    }
+  }, {passive:false});
+
   /* ---- Touch bridge (used only by touch.js on touch devices) ----
      Mirrors the keyboard exactly: down() sets the held + edge-press sets;
      up() clears the held set. info() lets the touch UI relabel its buttons
      for the current screen / mini-game.                                     */
   const touchBridge = {
-    down(code){ if(!keysDown.has(code)) keysPressed.add(code); keysDown.add(code); Audio2.resume(); },
+    // Always register the edge-press on a fresh touch, even if a previous
+    // touchend was dropped (which would otherwise leave the key stuck "down"
+    // and swallow the next press — e.g. the lantern not firing).
+    down(code){ keysPressed.add(code); keysDown.add(code); Audio2.resume(); },
     up(code){ keysDown.delete(code); },
-    tap(code){ keysPressed.add(code); Audio2.resume(); },
+    tap(code){ keysPressed.add(code); keysDown.delete(code); Audio2.resume(); },
     toggleMute(){ const m=Audio2.toggleMute(); flash(m?"Muted":"Sound on"); return m; },
     toggleFull(){ toggleFull(); },
     info(){ return { state, mgType: mg ? mg.cfg.type : null,
@@ -588,15 +611,30 @@
     ctx.fillText("platforming, treasure, and a mini-game each.", cx, H*0.975);
   }
 
+  // Chapter-grid geometry — shared by drawSelect() and the tap hit-test so a
+  // tap lands on exactly the card that's drawn.
+  const SEL_GRID = { cols:5, cw:188, chh:176, top:96, vgap:12 };
+  function selRect(i){
+    const {cols,cw,chh,top,vgap}=SEL_GRID, gx=(W-cols*cw)/2;
+    const r=Math.floor(i/cols), c=i%cols;
+    return { x:gx+c*cw+8, y:top+r*(chh+vgap), w:cw-16, h:chh };
+  }
+  // Returns the chapter index under a canvas-space point, or -1.
+  function chapterAt(cx, cy){
+    for(let i=0;i<CHAPTERS.length;i++){ const r=selRect(i);
+      if(cx>=r.x && cx<=r.x+r.w && cy>=r.y && cy<=r.y+r.h) return i; }
+    return -1;
+  }
+
   function drawSelect(){
     ctx.fillStyle="#14110c"; ctx.fillRect(0,0,W,H);
     ctx.textAlign="center"; ctx.fillStyle="#ffd966"; ctx.font="bold 28px Trebuchet MS";
     ctx.fillText("CHAPTER SELECT", W/2, 50);
     ctx.font="13px Trebuchet MS"; ctx.fillStyle="#cfc3a6";
-    ctx.fillText("← → ↑ ↓ choose · ENTER play · ESC back", W/2, 74);
-    const cols=5, cw=188, chh=176, gx=(W-cols*cw)/2;
+    ctx.fillText("Tap a chapter to play  ·  (or ← → ↑ ↓ then ENTER)  ·  ESC back", W/2, 74);
     for(let i=0;i<CHAPTERS.length;i++){
-      const ch=CHAPTERS[i], r=Math.floor(i/cols), c=i%cols, x=gx+c*cw+8, y=96+r*(chh+12), sel=i===chapterIdx;
+      const ch=CHAPTERS[i], rct=selRect(i), x=rct.x, y=rct.y, sel=i===chapterIdx;
+      const cw=SEL_GRID.cw, chh=SEL_GRID.chh;
       ctx.fillStyle=sel?"#3a2c18":"#241c12"; Art.rr(ctx,x,y,cw-16,chh,10); ctx.fill();
       if(sel){ ctx.strokeStyle="#ffd966"; ctx.lineWidth=3; Art.rr(ctx,x,y,cw-16,chh,10); ctx.stroke(); }
       ctx.textAlign="left";
