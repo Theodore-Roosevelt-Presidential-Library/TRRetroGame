@@ -676,19 +676,39 @@
   function drawSelect(){
     ctx.fillStyle="#14110c"; ctx.fillRect(0,0,W,H);
     ctx.textAlign="center"; ctx.fillStyle="#ffd966"; ctx.font="bold 28px Trebuchet MS";
-    ctx.fillText("CHAPTER SELECT", W/2, 50);
-    ctx.font="13px Trebuchet MS"; ctx.fillStyle="#cfc3a6";
-    ctx.fillText("Tap a chapter to play  ·  (or ← → ↑ ↓ then ENTER)  ·  ESC back", W/2, 74);
+    ctx.fillText("CHAPTER SELECT", W/2, 46);
+    // progress tally from saved completion
+    const done = CHAPTERS.filter(c=>clearedSet.has(c.id)).length;
+    ctx.font="13px Trebuchet MS"; ctx.fillStyle="#8be28b";
+    ctx.fillText("✓ "+done+" of "+CHAPTERS.length+" chapters completed"+(done===CHAPTERS.length?"  —  reward unlocked!":""), W/2, 66);
+    ctx.fillStyle="#cfc3a6"; ctx.font="12px Trebuchet MS";
+    ctx.fillText("Tap a chapter to play  ·  (or ← → ↑ ↓ then ENTER)  ·  ESC back", W/2, 84);
     for(let i=0;i<CHAPTERS.length;i++){
       const ch=CHAPTERS[i], rct=selRect(i), x=rct.x, y=rct.y, sel=i===chapterIdx;
-      const cw=SEL_GRID.cw, chh=SEL_GRID.chh;
-      ctx.fillStyle=sel?"#3a2c18":"#241c12"; Art.rr(ctx,x,y,cw-16,chh,10); ctx.fill();
-      if(sel){ ctx.strokeStyle="#ffd966"; ctx.lineWidth=3; Art.rr(ctx,x,y,cw-16,chh,10); ctx.stroke(); }
+      const cw=SEL_GRID.cw, chh=SEL_GRID.chh, w=cw-16;
+      const cleared=clearedSet.has(ch.id);
+      // card bg: completed cards get a green-tinted fill
+      ctx.fillStyle = sel ? (cleared?"#2c3a22":"#3a2c18") : (cleared?"#1d2a18":"#241c12");
+      Art.rr(ctx,x,y,w,chh,10); ctx.fill();
+      // border: gold when selected, green when completed, faint otherwise
+      ctx.lineWidth = sel?3:2;
+      ctx.strokeStyle = sel ? "#ffd966" : (cleared?"#5aa85a":"rgba(255,255,255,.10)");
+      Art.rr(ctx,x,y,w,chh,10); ctx.stroke();
       ctx.textAlign="left";
       ctx.fillStyle="#ffd966"; ctx.font="bold 13px Trebuchet MS"; ctx.fillText("Ch."+ch.id, x+12, y+24);
       ctx.fillStyle="#cdbf9c"; ctx.font="11px Trebuchet MS"; ctx.fillText(ch.years, x+12, y+40);
       ctx.fillStyle="#fff"; ctx.font="bold 14px Trebuchet MS"; wrapText(ctx,ch.title,x+12,y+62,cw-32,17);
       ctx.fillStyle="#bcae8e"; ctx.font="11px Trebuchet MS"; wrapText(ctx,"🎮 "+ch.minigame.name,x+12,y+chh-26,cw-32,14);
+      // completion badge (top-right of the card)
+      if(cleared){
+        const bx=x+w-20, by=y+18;
+        ctx.fillStyle="#5aa85a"; ctx.beginPath(); ctx.arc(bx,by,11,0,7); ctx.fill();
+        ctx.strokeStyle="#2e6b2e"; ctx.lineWidth=2; ctx.stroke();
+        ctx.fillStyle="#fff"; ctx.font="bold 13px Trebuchet MS"; ctx.textAlign="center"; ctx.fillText("✓",bx,by+5);
+        // "COMPLETED" ribbon along the bottom
+        ctx.fillStyle="rgba(90,168,90,.85)"; Art.rr(ctx,x,y+chh-15,w,15,0); ctx.fill();
+        ctx.fillStyle="#0d1a0d"; ctx.font="bold 10px Trebuchet MS"; ctx.textAlign="center"; ctx.fillText("COMPLETED",x+w/2,y+chh-4);
+      }
     }
   }
 
