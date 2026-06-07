@@ -302,7 +302,7 @@
       if(dx<32 && Math.abs(L.py-fo.y)<44){
         // stomp if falling onto it
         if(L.vy>0 && prevFeet < fo.y-FOE_H*0.5){
-          fo.dead=true; L.vy=-9; addScore(PTS.foe); Audio2.sfx.punch();
+          fo.dead=true; L.vy=-9; addScore(PTS.foe); Audio2.foeDefeat(fo.kind);
           particles.spawn(fo.x-L.cam,fo.y-FOE_H*0.5,{n:14,color:"#cde3ff",spread:3,life:30});
         } else { hurt(L,false); }
       }

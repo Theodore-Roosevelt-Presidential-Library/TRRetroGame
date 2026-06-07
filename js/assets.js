@@ -7,7 +7,7 @@
 const Assets = (() => {
   const bg = {};        // chapterId -> Image
   const status = {};    // chapterId -> "loading" | "ok" | "fail"
-  const VER = "20260608";   // cache-buster — keep in sync with index.html ?v=
+  const VER = "20260609";   // cache-buster — keep in sync with index.html ?v=
 
   function load(){
     if (typeof CHAPTERS === "undefined") return;

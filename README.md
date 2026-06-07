@@ -396,7 +396,12 @@ on menus). All styling is scoped to `body.is-touch` in `style.css`.
 ### `audio.js` — `Audio2.*`
 `Audio2.resume()`, `Audio2.playMusic(name)`, `Audio2.stopMusic()`,
 `Audio2.toggleMute()`, and `Audio2.sfx.*` (jump, land, coin, hit, punch, shoot,
-success, fail, select, powerup, paddle, type). All synthesized.
+success, fail, select, powerup, paddle, type). All synthesized — no audio files.
+`Audio2.foeDefeat(kind)` plays a **character-specific defeat sound** when you
+stomp an enemy (a cat meow, a dog yelp, a snake's rattle, a rat squeak, a gull
+squawk, a mosquito buzz cut short, coins spilling from a "trust," a jaguar growl,
+etc.), keyed to the enemy's `kind`; unknown kinds fall back to the generic punch.
+The per-foe sounds live in the `foeSfx` table in `audio.js`.
 
 ### `assets.js` — `Assets.*`
 `Assets.load()` kicks off loading every chapter's background image;
