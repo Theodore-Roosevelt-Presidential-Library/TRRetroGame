@@ -13,7 +13,11 @@ const Audio2 = (() => {
 
   function ensure() {
     if (ctx) return;
-    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const AC = window.AudioContext || window.webkitAudioContext;
+    // latencyHint:"interactive" asks the OS for the smallest output buffer so
+    // SFX fire as close to instantly as the hardware allows.
+    try { ctx = new AC({ latencyHint: "interactive" }); }
+    catch (e) { ctx = new AC(); }
     master = ctx.createGain();
     master.gain.value = 0.5;
     master.connect(ctx.destination);
@@ -29,7 +33,7 @@ const Audio2 = (() => {
     o.type = type;
     o.frequency.setValueAtTime(freq, t);
     g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(vol, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.004);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     o.connect(g); g.connect(master);
     o.start(t); o.stop(t + dur + 0.02);
@@ -58,7 +62,7 @@ const Audio2 = (() => {
     o.frequency.setValueAtTime(f0, t);
     o.frequency.exponentialRampToValueAtTime(Math.max(1, f1), t + dur);
     g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(vol, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.006);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     o.connect(g); g.connect(master);
     o.start(t); o.stop(t + dur + 0.02);
@@ -102,8 +106,11 @@ const Audio2 = (() => {
     piranha:  () => { slide(600,200,0.10,"sawtooth",0.18); tone(120,0.12,"sawtooth",0.14,0.06); },   // chomp/splash
     jaguar:   () => { slide(420,120,0.26,"sawtooth",0.22); noise(0.10,0.16,0.02); },                 // growl
   };
-  // play an enemy's defeat sound by kind; falls back to the generic punch
+  // play an enemy's defeat sound by kind; falls back to the generic punch.
+  // A tiny noise tick at when=0 gives an instant, crisp "impact" onset so the
+  // hit never feels late, then the enemy's characteristic sound layers on top.
   function foeDefeat(kind){
+    noise(0.03, 0.16);            // immediate percussive transient
     const fn = foeSfx[kind];
     if (fn) fn(); else sfx.punch();
   }
