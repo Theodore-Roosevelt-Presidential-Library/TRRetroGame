@@ -108,17 +108,67 @@ const Audio2 = (() => {
     if (fn) fn(); else sfx.punch();
   }
 
-  // ---- Music: simple looping bass+lead per mood ----
-  const SCALE = { // midi-ish frequency tables
-    A3:220, B3:247, C4:262, D4:294, E4:330, F4:349, G4:392,
-    A4:440, B4:494, C5:523, D5:587, E5:659, G5:784, A5:880,
+  // ---- Music: a unique pensive track per location ----
+  // Note → frequency (two-and-a-bit octaves). "0" = a rest.
+  const NOTE = {
+    "0":0,
+    G2:98, A2:110, B2:123,
+    C3:131, D3:147, E3:165, F3:175, G3:196, A3:220, Bb3:233, B3:247,
+    C4:262, D4:294, E4:330, F4:349, Fs4:370, G4:392, A4:440, Bb4:466, B4:494,
+    C5:523, D5:587, E5:659, F5:698, G5:784, A5:880,
   };
-  const TUNES = {
-    heroic:  ["C4","E4","G4","C5","G4","E4","G4","E4"],
-    frontier:["A3","C4","E4","A4","G4","E4","D4","C4"],
-    tense:   ["A3","A3","C4","E4","D4","C4","B3","A3"],
-    march:   ["G4","G4","C5","C5","E4","G4","C5","E4"],
-    calm:    ["C4","E4","G4","E4","F4","A4","G4","E4"],
+
+  /* Each track:
+       lead  — melody steps (looped)
+       bass  — bass steps (looped; usually slower-feeling, half the notes)
+       ms    — milliseconds per step (tempo; bigger = slower/more pensive)
+       wave  — lead waveform; lvol — lead volume
+     Themed to each chapter's place + what TR is doing there.            */
+  const TRACKS = {
+    // 1 — NYC boyhood: gentle, hopeful parlor melody (building the body)
+    nyc:      { ms:300, wave:"triangle", lvol:0.10,
+      lead:["E4","G4","C5","B4","A4","G4","E4","0","D4","E4","G4","E4","D4","C4","0","0"],
+      bass:["C3","0","G3","0","A2","0","G3","0"] },
+    // 2 — Harvard: bright, determined, collegiate
+    harvard:  { ms:240, wave:"square", lvol:0.08,
+      lead:["G4","A4","B4","C5","B4","A4","G4","E4","G4","C5","B4","G4","A4","G4","0","0"],
+      bass:["C3","G3","C3","G3","D3","A3","D3","G3"] },
+    // 3 — Dakota Badlands: lonesome, wide-open, grieving frontier
+    badlands: { ms:360, wave:"triangle", lvol:0.11,
+      lead:["A3","0","C4","D4","E4","0","D4","C4","A3","0","G3","A3","C4","0","0","0"],
+      bass:["A2","0","0","E3","F3","0","0","E3"] },
+    // 4 — NYPD midnight: noir, nocturnal, watchful
+    midnight: { ms:300, wave:"sine", lvol:0.12,
+      lead:["A3","B3","C4","B3","A3","0","E4","D4","C4","B3","A3","0","G4","0","0","0"],
+      bass:["A2","0","A2","0","F3","0","E3","0"] },
+    // 5 — Navy yard: stately, rolling like the sea
+    navy:     { ms:300, wave:"triangle", lvol:0.10,
+      lead:["D4","F4","A4","D5","A4","F4","D4","F4","C4","E4","G4","C5","G4","E4","0","0"],
+      bass:["D3","0","A2","0","B2","0","A2","0"] },
+    // 6 — Cuba / Kettle Hill: martial, charging, urgent
+    charge:   { ms:200, wave:"square", lvol:0.10,
+      lead:["G4","G4","C5","C5","E5","D5","C5","G4","A4","A4","D5","C5","B4","G4","0","0"],
+      bass:["C3","C3","G3","G3","F3","F3","G3","G3"] },
+    // 7 — Albany→White House: ascending, ceremonial ascent
+    ascend:   { ms:260, wave:"triangle", lvol:0.10,
+      lead:["C4","E4","G4","C5","E5","C5","G4","E4","D4","F4","A4","D5","C5","G4","0","0"],
+      bass:["C3","G3","E3","G3","F3","C3","G3","C3"] },
+    // 8 — Bully Pulpit Main Street: patriotic, march-like
+    pulpit:   { ms:240, wave:"square", lvol:0.09,
+      lead:["G4","C5","C5","B4","C5","D5","E5","C5","G4","A4","B4","C5","G4","E4","0","0"],
+      bass:["C3","G3","C3","G3","G3","D3","G3","C3"] },
+    // 9 — Yosemite conservation: serene, majestic, spacious
+    wild:     { ms:380, wave:"sine", lvol:0.12,
+      lead:["C4","E4","G4","A4","G4","E4","D4","0","F4","A4","C5","A4","G4","E4","0","0"],
+      bass:["C3","0","F3","0","G3","0","C3","0"] },
+    // 10 — Amazon River of Doubt: dark, mysterious, perilous (minor)
+    doubt:    { ms:340, wave:"sine", lvol:0.12,
+      lead:["A3","C4","E4","A4","G4","E4","F4","E4","D4","C4","B3","A3","E4","0","0","0"],
+      bass:["A2","0","E3","0","F3","0","E3","0"] },
+    // simple fallbacks (used by menus / cutscenes / results)
+    calm:     { ms:320, wave:"triangle", lvol:0.10,
+      lead:["C4","E4","G4","E4","F4","A4","G4","E4","D4","F4","A4","G4","E4","C4","0","0"],
+      bass:["C3","0","G3","0","F3","0","G3","0"] },
   };
 
   function playMusic(name) {
@@ -126,17 +176,19 @@ const Audio2 = (() => {
     if (currentTune === name) return;
     currentTune = name;
     stopMusic();
-    if (!TUNES[name]) return;
-    const seq = TUNES[name];
-    musicStep = 0;
+    currentTune = name;            // (stopMusic clears it; set again)
+    const tr = TRACKS[name] || TRACKS.calm;
+    let step = 0;
     musicTimer = setInterval(() => {
       if (muted) return;
-      const note = seq[musicStep % seq.length];
-      const f = SCALE[note] || 330;
-      tone(f, 0.22, "triangle", 0.10);            // lead
-      if (musicStep % 2 === 0) tone(f/2, 0.30, "square", 0.06); // bass
-      musicStep++;
-    }, 230);
+      const ln = tr.lead[step % tr.lead.length];
+      const lf = NOTE[ln] || 0;
+      if (lf) tone(lf, tr.ms/1000*0.9, tr.wave, tr.lvol);           // lead
+      const bn = tr.bass[step % tr.bass.length];
+      const bf = NOTE[bn] || 0;
+      if (bf) tone(bf, tr.ms/1000*1.2, "square", 0.055);            // soft bass
+      step++;
+    }, name ? (TRACKS[name]||TRACKS.calm).ms : 300);
   }
   function stopMusic() {
     if (musicTimer) { clearInterval(musicTimer); musicTimer = null; }

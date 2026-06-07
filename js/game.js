@@ -168,15 +168,12 @@
 
   function costumeFor(ch){ return ch.costume || "cowboy"; }
   function ageFor(ch){ return ch.age || "adult"; }
-  function musicFor(ch){
-    if (ch.id<=2) return "calm";
-    if (ch.id===3) return "frontier";
-    if (ch.id===4) return "tense";
-    if (ch.id===6) return "march";
-    if (ch.id===9) return "calm";
-    if (ch.id>=8) return "frontier";
-    return "heroic";
-  }
+  // each chapter has its own location/goal-themed track (defined in audio.js)
+  const CH_MUSIC = {
+    1:"nyc", 2:"harvard", 3:"badlands", 4:"midnight", 5:"navy",
+    6:"charge", 7:"ascend", 8:"pulpit", 9:"wild", 10:"doubt",
+  };
+  function musicFor(ch){ return CH_MUSIC[ch.id] || "calm"; }
 
   /* ============================================================
      LEVEL — Mario/Zelda hybrid platformer

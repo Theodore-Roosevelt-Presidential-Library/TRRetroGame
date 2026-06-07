@@ -282,9 +282,14 @@ boulders, ice floes, money-bag trusts, telegraph key, wildlife, etc.) are drawn 
 the same detailed, shaded standard.
 
 **Audio** is fully synthesized at runtime with the Web Audio API — there are no
-audio files. Music is a small set of looping chiptune themes selected per chapter,
-and sound effects (jump, coin, hit, punch, cannon, success, fail) are generated on
-the fly. Everything is portable: copy the folder and it works.
+audio files. Each chapter has its own pensive, looping chiptune track themed to its
+location and goal: a hopeful NYC boyhood theme, a bright Harvard tune, a lonesome
+Badlands melody, a noir NYPD-night theme, a stately Navy march, a martial San Juan
+charge, a ceremonial rise-to-the-presidency theme, a patriotic Bully Pulpit march,
+a serene Yosemite wilderness theme, and a dark minor-key Amazon theme (each with its
+own melody, bass line, tempo, and waveform). Sound effects (jump, coin, hit, punch,
+cannon, success, fail) and per-enemy defeat sounds are generated on the fly.
+Everything is portable: copy the folder and it works.
 
 ---
 
