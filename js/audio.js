@@ -13,11 +13,11 @@ const Audio2 = (() => {
 
   function ensure() {
     if (ctx) return;
-    const AC = window.AudioContext || window.webkitAudioContext;
-    // latencyHint:"interactive" asks the OS for the smallest output buffer so
-    // SFX fire as close to instantly as the hardware allows.
-    try { ctx = new AC({ latencyHint: "interactive" }); }
-    catch (e) { ctx = new AC(); }
+    // Use the browser's default output buffer. We tried latencyHint:"interactive"
+    // to shave SFX delay, but on some browsers (notably Safari) the tiny buffer
+    // spikes CPU and drags the whole frame rate down. The crisp-onset fixes
+    // (instant noise transient + tighter envelopes) already address the delay.
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
     master = ctx.createGain();
     master.gain.value = 0.5;
     master.connect(ctx.destination);

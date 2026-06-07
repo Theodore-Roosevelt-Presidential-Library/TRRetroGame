@@ -258,8 +258,44 @@
              cam:0, hp:3, inv:0, coinCount:0, factPop:"", factT:0, safeX:60, safeY:tileY };
   }
 
+  /* Pre-render the STATIC terrain (ground segments + floating platforms) to an
+     offscreen canvas ONCE per level. Drawing it is then a single drawImage per
+     frame instead of dozens of gradients/fills/strokes — a big win on browsers
+     with slower 2D canvas (Safari), especially when lots else is on screen. */
+  function buildTerrain(L, ch){
+    try {
+      let maxX = 0;
+      for(const s of L.segs) maxX = Math.max(maxX, s.x + s.w);
+      for(const p of L.plats) maxX = Math.max(maxX, p.x + p.w);
+      const cv = document.createElement("canvas");
+      cv.width = Math.ceil(maxX) + 40; cv.height = H;
+      const c = cv.getContext("2d");
+      for(const s of L.segs){
+        const grd=c.createLinearGradient(0,s.y,0,H);
+        grd.addColorStop(0, shadeHex(ch.palette.ground,18));
+        grd.addColorStop(1, "#0c0a08");
+        c.fillStyle=grd; c.fillRect(s.x,s.y,s.w,H-s.y);
+        c.fillStyle=ch.palette.accent; c.fillRect(s.x,s.y,s.w,7);
+        c.fillStyle="rgba(0,0,0,.25)";
+        for(let bx=s.x; bx<s.x+s.w; bx+=32) c.fillRect(bx,s.y+10,2,H-s.y);
+      }
+      for(const p of L.plats){
+        c.fillStyle="#5a3c22"; Art.rr(c,p.x,p.y,p.w,18,6); c.fill();
+        c.fillStyle="#7a5230"; Art.rr(c,p.x,p.y,p.w,14,6); c.fill();
+        c.fillStyle=ch.palette.accent; Art.rr(c,p.x,p.y,p.w,5,3); c.fill();
+        c.strokeStyle="rgba(0,0,0,.18)"; c.lineWidth=1;
+        for(let gx=p.x+10; gx<p.x+p.w-6; gx+=22){ c.beginPath(); c.moveTo(gx,p.y+7); c.lineTo(gx+8,p.y+7); c.stroke(); }
+        c.fillStyle="#3a2614";
+        c.beginPath(); c.arc(p.x+6,p.y+10,1.8,0,7); c.arc(p.x+p.w-6,p.y+10,1.8,0,7); c.fill();
+        c.strokeStyle="rgba(0,0,0,.4)"; c.lineWidth=2; Art.rr(c,p.x,p.y,p.w,14,6); c.stroke();
+      }
+      return cv;
+    } catch(e){ return null; }   // fall back to per-frame terrain drawing
+  }
+
   function startLevel(idx){
     level = buildLevel(CHAPTERS[idx]);
+    level.terrain = buildTerrain(level, CHAPTERS[idx]);
     Audio2.playMusic(musicFor(CHAPTERS[idx]));
     state = S.LEVEL;
   }
@@ -352,29 +388,32 @@
     const L=level, ch=L.ch;
     Art.drawBackground(ctx, ch.id, ch.scenery, W, H, L.cam, ch.palette, t);
 
-    // ground segments
-    for(const s of L.segs){
-      const sx=s.x-L.cam; if(sx>W||sx+s.w<0) continue;
-      const grd=ctx.createLinearGradient(0,s.y,0,H);
-      grd.addColorStop(0, shadeHex(ch.palette.ground,18));
-      grd.addColorStop(1, "#0c0a08");
-      ctx.fillStyle=grd; ctx.fillRect(sx,s.y,s.w,H-s.y);
-      // grassy/earth cap
-      ctx.fillStyle=ch.palette.accent; ctx.fillRect(sx,s.y,s.w,7);
-      ctx.fillStyle="rgba(0,0,0,.25)";
-      for(let bx=sx%32;bx<sx+s.w;bx+=32) ctx.fillRect(bx,s.y+10,2,H-s.y);
-    }
-    // floating platforms (wood plank with grain, grass cap, bolts)
-    for(const p of L.plats){
-      const sx=p.x-L.cam; if(sx>W||sx+p.w<0) continue;
-      ctx.fillStyle="#5a3c22"; Art.rr(ctx,sx,p.y,p.w,18,6); ctx.fill();        // under-shadow
-      ctx.fillStyle="#7a5230"; Art.rr(ctx,sx,p.y,p.w,14,6); ctx.fill();        // plank
-      ctx.fillStyle=ch.palette.accent; Art.rr(ctx,sx,p.y,p.w,5,3); ctx.fill(); // grass cap
-      ctx.strokeStyle="rgba(0,0,0,.18)"; ctx.lineWidth=1;                      // grain
-      for(let gx=sx+10; gx<sx+p.w-6; gx+=22){ ctx.beginPath(); ctx.moveTo(gx,p.y+7); ctx.lineTo(gx+8,p.y+7); ctx.stroke(); }
-      ctx.fillStyle="#3a2614";                                                 // bolts
-      ctx.beginPath(); ctx.arc(sx+6,p.y+10,1.8,0,7); ctx.arc(sx+p.w-6,p.y+10,1.8,0,7); ctx.fill();
-      ctx.strokeStyle="rgba(0,0,0,.4)"; ctx.lineWidth=2; Art.rr(ctx,sx,p.y,p.w,14,6); ctx.stroke();
+    // Static terrain (ground + platforms): one blit of the pre-rendered canvas.
+    if(L.terrain){
+      ctx.drawImage(L.terrain, -L.cam, 0);
+    } else {
+      // Fallback: draw terrain per frame (only if pre-render failed).
+      for(const s of L.segs){
+        const sx=s.x-L.cam; if(sx>W||sx+s.w<0) continue;
+        const grd=ctx.createLinearGradient(0,s.y,0,H);
+        grd.addColorStop(0, shadeHex(ch.palette.ground,18));
+        grd.addColorStop(1, "#0c0a08");
+        ctx.fillStyle=grd; ctx.fillRect(sx,s.y,s.w,H-s.y);
+        ctx.fillStyle=ch.palette.accent; ctx.fillRect(sx,s.y,s.w,7);
+        ctx.fillStyle="rgba(0,0,0,.25)";
+        for(let bx=sx%32;bx<sx+s.w;bx+=32) ctx.fillRect(bx,s.y+10,2,H-s.y);
+      }
+      for(const p of L.plats){
+        const sx=p.x-L.cam; if(sx>W||sx+p.w<0) continue;
+        ctx.fillStyle="#5a3c22"; Art.rr(ctx,sx,p.y,p.w,18,6); ctx.fill();
+        ctx.fillStyle="#7a5230"; Art.rr(ctx,sx,p.y,p.w,14,6); ctx.fill();
+        ctx.fillStyle=ch.palette.accent; Art.rr(ctx,sx,p.y,p.w,5,3); ctx.fill();
+        ctx.strokeStyle="rgba(0,0,0,.18)"; ctx.lineWidth=1;
+        for(let gx=sx+10; gx<sx+p.w-6; gx+=22){ ctx.beginPath(); ctx.moveTo(gx,p.y+7); ctx.lineTo(gx+8,p.y+7); ctx.stroke(); }
+        ctx.fillStyle="#3a2614";
+        ctx.beginPath(); ctx.arc(sx+6,p.y+10,1.8,0,7); ctx.arc(sx+p.w-6,p.y+10,1.8,0,7); ctx.fill();
+        ctx.strokeStyle="rgba(0,0,0,.4)"; ctx.lineWidth=2; Art.rr(ctx,sx,p.y,p.w,14,6); ctx.stroke();
+      }
     }
     // coins (spinning, with shine + rim)
     for(const c of L.coins){ if(c.got) continue; const sx=c.x-L.cam; if(sx<-20||sx>W+20) continue;
@@ -913,54 +952,83 @@
     if(input.pressed("Escape")){ state=S.MENU; }
   }
 
-  /* ---------------- Main loop ---------------- */
-  let last=performance.now();
-  function frame(now){
-    const dt=Math.min(40, now-last); last=now; t+=dt;
+  /* ---------------- Main loop ----------------
+     FIXED-TIMESTEP simulation so the game runs at the same real-time speed no
+     matter the display's frame rate. Previously everything advanced once per
+     animation frame, so a browser running below 60fps — e.g. Safari in Low Power
+     Mode, which throttles requestAnimationFrame to 30fps — played in slow motion.
+     Now we accumulate real elapsed time and run as many 1/60 s simulation steps
+     as it demands, then render once. Render rate can vary; game speed can't.   */
+  const STEP = 1000/60;          // one simulation tick = 1/60 of a second
+  let last = performance.now();
+  let acc = 0;
 
-    // GLOBAL CLEAR every frame — fixes any bleed-through between states
-    ctx.setTransform(1,0,0,1,0,0);
-    ctx.clearRect(0,0,W,H);
-    ctx.fillStyle="#0b0d12"; ctx.fillRect(0,0,W,H);
-
+  // One fixed simulation tick: input + physics + timers (NO drawing).
+  function simulate(){
     switch(state){
-      case S.MENU: drawMenu(); handleMenuKeys(); break;
-      case S.SELECT: drawSelect(); handleSelectKeys(); break;
-      case S.CUTSCENE: drawCutscene();
+      case S.MENU: handleMenuKeys(); break;
+      case S.SELECT: handleSelectKeys(); break;
+      case S.CUTSCENE:
         if(input.pressed("Enter")||input.pressed("Space")){ Audio2.sfx.select(); startLevel(chapterIdx); }
         if(input.pressed("Escape")){ state=S.MENU; } break;
-      case S.LEVEL: updateLevel(); drawLevel();
+      case S.LEVEL: updateLevel();
         if(input.pressed("Escape")){ state=S.MENU; } break;
-      case S.MGINTRO: drawMGIntro();
+      case S.MGINTRO:
         if(input.pressed("Enter")||input.pressed("Space")){ Audio2.sfx.select(); startMG(); }
         if(input.pressed("Escape")){ state=S.MENU; } break;
       case S.MG:
-        mg.update(input); mg.draw(ctx,t);
-        if(!IS_TOUCH){
-          ctx.fillStyle="rgba(0,0,0,.4)"; ctx.fillRect(0,H-26,W,26);
-          ctx.fillStyle="#fff"; ctx.font="12px Trebuchet MS"; ctx.textAlign="center"; ctx.fillText(mg.cfg.controls, W/2, H-9);
-        }
+        mg.update(input);
         if(mg.status==="won"){ Audio2.sfx.success(); markCleared(CHAPTERS[chapterIdx].id); state=S.RECAP; }
         else if(mg.status==="lost"){ Audio2.sfx.fail(); loseFrom="mg"; state=S.LOSE; }
         break;
-      case S.RECAP: drawRecap();
+      case S.RECAP:
         if(input.pressed("Enter")){ Audio2.sfx.select(); state=S.WIN; }
         if(input.pressed("Escape")){ state=S.MENU; } break;
-      case S.WIN: drawResult(true);
+      case S.WIN:
         if(input.pressed("Enter")){ if(chapterIdx<CHAPTERS.length-1){ chapterIdx++; Audio2.sfx.select(); startCutscene(); } else state=S.END; }
         if(input.pressed("Escape")){ state=S.MENU; } break;
-      case S.LOSE: drawResult(false);
+      case S.LOSE:
         if(input.pressed("Enter")){ Audio2.sfx.select();
           if(loseFrom==="level") startLevel(chapterIdx);   // out of hearts → replay the whole stage
           else startMGIntro();                              // mini-game failed → retry the mini-game
         }
         if(input.pressed("KeyS")){ if(chapterIdx<CHAPTERS.length-1){ chapterIdx++; startCutscene(); } else state=S.END; }
         if(input.pressed("Escape")){ state=S.MENU; } break;
-      case S.END: drawEnding();
+      case S.END:
         if(input.pressed("Enter")){ state=S.MENU; chapterIdx=0; } break;
     }
+    particles.update();
+    if(flashT>0) flashT--;
+    keysPressed.clear();   // edge-presses are consumed once, per fixed step
+  }
 
-    particles.update(); particles.draw(ctx);
+  // Draw the current state once (called once per animation frame).
+  function render(){
+    // GLOBAL CLEAR every frame — fixes any bleed-through between states
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle="#0b0d12"; ctx.fillRect(0,0,W,H);
+
+    switch(state){
+      case S.MENU: drawMenu(); break;
+      case S.SELECT: drawSelect(); break;
+      case S.CUTSCENE: drawCutscene(); break;
+      case S.LEVEL: drawLevel(); break;
+      case S.MGINTRO: drawMGIntro(); break;
+      case S.MG:
+        mg.draw(ctx,t);
+        if(!IS_TOUCH){
+          ctx.fillStyle="rgba(0,0,0,.4)"; ctx.fillRect(0,H-26,W,26);
+          ctx.fillStyle="#fff"; ctx.font="12px Trebuchet MS"; ctx.textAlign="center"; ctx.fillText(mg.cfg.controls, W/2, H-9);
+        }
+        break;
+      case S.RECAP: drawRecap(); break;
+      case S.WIN: drawResult(true); break;
+      case S.LOSE: drawResult(false); break;
+      case S.END: drawEnding(); break;
+    }
+
+    particles.draw(ctx);
 
     // Show the TRPL wordmark (links to trlibrary.com) on the intro + summary
     // screens, where it's informative and not in the way of gameplay.
@@ -977,11 +1045,19 @@
       claimBtn.classList.toggle("show", state===S.END && allCleared());
     }
 
-    if(flashT>0){ flashT--; ctx.save(); ctx.globalAlpha=Math.min(1,flashT/40);
+    if(flashT>0){ ctx.save(); ctx.globalAlpha=Math.min(1,flashT/40);
       ctx.fillStyle="#000a"; Art.rr(ctx,W/2-70,16,140,30,8); ctx.fill();
       ctx.fillStyle="#ffd966"; ctx.font="bold 16px Trebuchet MS"; ctx.textAlign="center"; ctx.fillText(flashMsg,W/2,36); ctx.restore(); }
+  }
 
-    keysPressed.clear();
+  function frame(now){
+    let elapsed = now - last; last = now;
+    if(elapsed > 250) elapsed = 250;   // cap catch-up after a stall / tab-switch
+    t += elapsed;                      // real-time clock used by animations
+    acc += elapsed;
+    let steps = 0;
+    while(acc >= STEP && steps < 5){ simulate(); acc -= STEP; steps++; }  // 5 = spiral guard
+    render();
     requestAnimationFrame(frame);
   }
 
