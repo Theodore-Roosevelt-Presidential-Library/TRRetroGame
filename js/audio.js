@@ -138,7 +138,10 @@ const Audio2 = (() => {
       musicStep++;
     }, 230);
   }
-  function stopMusic() { if (musicTimer) { clearInterval(musicTimer); musicTimer = null; } }
+  function stopMusic() {
+    if (musicTimer) { clearInterval(musicTimer); musicTimer = null; }
+    currentTune = null;   // reset so a later playMusic() of the SAME tune restarts it
+  }
 
   function toggleMute() {
     muted = !muted;
