@@ -29,8 +29,14 @@
     if (!keysDown.has(e.code)) keysPressed.add(e.code);
     keysDown.add(e.code);
     Audio2.resume();
-    if (e.code === "KeyM") { const m = Audio2.toggleMute(); flash(m ? "Muted" : "Sound on"); }
-    if (e.code === "KeyF") toggleFull();
+    // M (mute) and F (fullscreen) are global shortcuts, BUT mini-games use letter
+    // keys as gameplay input (the telegraph dispatches include F and M), so we
+    // suppress these shortcuts during a mini-game to avoid the keys doing double
+    // duty. Mute/fullscreen remain available from every other screen.
+    if (state !== S.MG) {
+      if (e.code === "KeyM") { const m = Audio2.toggleMute(); flash(m ? "Muted" : "Sound on"); }
+      if (e.code === "KeyF") toggleFull();
+    }
     konamiCheck(e.code);   // hidden reset sequence
   });
   window.addEventListener("keyup", e => keysDown.delete(e.code));
