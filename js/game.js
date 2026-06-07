@@ -393,9 +393,13 @@
     for(let i=0;i<3;i++){ ctx.fillStyle=i<L.hp?"#ff5a5a":"#444"; heartHUD(ctx,W-40-i*26,28,9); }
     ctx.fillStyle="#ffd34d"; ctx.font="bold 14px Trebuchet MS"; ctx.textAlign="right";
     ctx.fillText("◉ "+L.coinCount, W-110, 32);
-    // running total score (persists across levels)
-    ctx.fillStyle="#8be28b"; ctx.font="bold 16px Trebuchet MS"; ctx.textAlign="center";
-    ctx.fillText("SCORE  "+score, W/2, 30);
+    // running total score (persists across levels) — on a dark pill so it stays
+    // readable over busy AI backdrops
+    ctx.font="bold 16px Trebuchet MS";
+    const sTxt="SCORE  "+score, sW=ctx.measureText(sTxt).width, pillW=sW+28;
+    ctx.fillStyle="rgba(0,0,0,.55)"; Art.rr(ctx, W/2-pillW/2, 12, pillW, 26, 13); ctx.fill();
+    ctx.strokeStyle="rgba(255,255,255,.15)"; ctx.lineWidth=1; Art.rr(ctx, W/2-pillW/2, 12, pillW, 26, 13); ctx.stroke();
+    ctx.fillStyle="#9df09d"; ctx.textAlign="center"; ctx.fillText(sTxt, W/2, 30);
 
     // fact popup
     if(L.factT>0 && L.factPop){
