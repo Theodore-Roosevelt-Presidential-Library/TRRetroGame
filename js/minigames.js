@@ -829,8 +829,14 @@ class MGStick {
     if(input.pressed("ArrowRight"))this.lane=clamp(this.lane+1,0,2);
     if(this.swing>0)this.swing--;
     this.spawnT--; if(this.spawnT<=0){ this.spawnT=rand(28,46);
-      this.pop.push({lane:Math.floor(rand(0,3)),life:rand(55,90),
-        type:Math.random()<0.66?"trust":"citizen",hit:false}); }
+      // Only spawn into an empty lane so a trust and a citizen can never stack on
+      // the same spot (which let one swing bust the trust AND hurt the citizen).
+      const taken={}; for(const q of this.pop){ if(q.life>0&&!q.hit) taken[q.lane]=true; }
+      const free=[0,1,2].filter(l=>!taken[l]);
+      if(free.length){
+        this.pop.push({lane:free[Math.floor(rand(0,free.length))],life:rand(55,90),
+          type:Math.random()<0.66?"trust":"citizen",hit:false});
+      } }
     for(const p of this.pop) p.life--;
     if(input.pressed("Space")){ this.swing=10; Audio2.sfx.punch();
       for(const p of this.pop){ if(!p.hit&&p.lane===this.lane&&p.life>0){
@@ -838,6 +844,7 @@ class MGStick {
           this.env.particles.spawn(this.env.W*this.lanes[this.lane],this.env.H*0.6,{n:14,color:"#ffd34d",spread:3}); }
         else { p.hit=true; this.bad++; Audio2.sfx.fail();
           this.env.particles.spawn(this.env.W*this.lanes[this.lane],this.env.H*0.6,{n:10,color:"#ff5a5a",spread:3}); }
+        break;   // one swing affects at most one target
       } }
     }
     this.pop=this.pop.filter(p=>p.life>0&&!p.hit);
@@ -943,11 +950,17 @@ class MGConserve {
     if(input.pressed("ArrowRight"))this.lane=clamp(this.lane+1,0,2);
     if(this.act>0)this.act--;
     this.spawnT--; if(this.spawnT<=0){ this.spawnT=rand(30,50);
-      const r=Math.random();
-      const type = r<0.6 ? "threat" : "wild";       // poacher/logger vs deer/bear
-      this.pop.push({lane:Math.floor(rand(0,3)),life:rand(60,95),
-        kind: type==="threat" ? (Math.random()<0.5?"poacher":"logger") : (Math.random()<0.5?"deer":"bear"),
-        type, hit:false}); }
+      // Only spawn into a lane that's currently empty, so two pop-ups can never
+      // overlap on the same spot (which let one swing hit both a threat AND wildlife).
+      const taken={}; for(const q of this.pop){ if(q.life>0&&!q.hit) taken[q.lane]=true; }
+      const free=[0,1,2].filter(l=>!taken[l]);
+      if(free.length){
+        const r=Math.random();
+        const type = r<0.6 ? "threat" : "wild";       // poacher/logger vs deer/bear
+        this.pop.push({lane:free[Math.floor(rand(0,free.length))],life:rand(60,95),
+          kind: type==="threat" ? (Math.random()<0.5?"poacher":"logger") : (Math.random()<0.5?"deer":"bear"),
+          type, hit:false});
+      } }
     for(const p of this.pop) p.life--;
     if(input.pressed("Space")){ this.act=10; Audio2.sfx.punch();
       for(const p of this.pop){ if(!p.hit&&p.lane===this.lane&&p.life>0){
@@ -955,6 +968,7 @@ class MGConserve {
           this.env.particles.spawn(this.env.W*this.lanes[this.lane],this.env.H*0.58,{n:14,color:"#8be28b",spread:3}); }
         else { p.hit=true; this.scared++; Audio2.sfx.fail();
           this.env.particles.spawn(this.env.W*this.lanes[this.lane],this.env.H*0.58,{n:10,color:"#ff5a5a",spread:3}); }
+        break;   // one swing affects at most one target
       } }
     }
     this.pop=this.pop.filter(p=>p.life>0&&!p.hit);
