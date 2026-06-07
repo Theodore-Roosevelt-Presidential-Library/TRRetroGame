@@ -62,6 +62,7 @@ falls back to procedurally drawn scenery automatically.
 | `ESC` | Back to title |
 | `F` | Toggle fullscreen |
 | `M` | Toggle mute |
+| `↑ ↑ ↓ ↓ ← → ← → B A` | **Hidden:** reset all saved progress (see below) |
 
 **Platformer levels**
 
@@ -536,7 +537,25 @@ The total shows in the level HUD (top-center, "SCORE n"), on each chapter's reca
 screen ("TOTAL SCORE: n"), and in the Chapter Select header ("★ Score: n"). Point
 values live in the `PTS` object near the top of `js/game.js`; `addScore()` writes
 through to `localStorage` on every pickup. To reset a player's score, clear that
-key (or clear site data).
+key (or clear site data), or use the hidden reset code below.
+
+---
+
+## Hidden reset code
+
+Entering the classic Konami code on the keyboard —
+**`↑ ↑ ↓ ↓ ← → ← → B A`** — wipes all saved progress: it clears both
+`localStorage` keys (`tr_cleared_v1` cleared-chapters and `tr_score_v1` score),
+resets them in memory so the completion badges and score update immediately,
+plays the power-up chime, and flashes **"Progress reset!"** on screen.
+
+For safety it is **only armed on the start, Chapter Select, and completion
+screens** — during a level, cutscene, or mini-game the sequence is ignored, and
+any partial attempt is forgotten the moment you leave an eligible screen, so it
+can't be triggered accidentally mid-game. The matcher (`konamiCheck` in
+`js/game.js`) uses a rolling buffer of the last 10 keys, so stray keypresses
+before or during the attempt won't jam it. It is keyboard-only, so it stays
+hidden from casual play on touch devices.
 
 ---
 

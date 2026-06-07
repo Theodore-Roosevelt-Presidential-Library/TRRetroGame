@@ -31,6 +31,7 @@
     Audio2.resume();
     if (e.code === "KeyM") { const m = Audio2.toggleMute(); flash(m ? "Muted" : "Sound on"); }
     if (e.code === "KeyF") toggleFull();
+    konamiCheck(e.code);   // hidden reset sequence
   });
   window.addEventListener("keyup", e => keysDown.delete(e.code));
   canvas.addEventListener("mousedown", () => Audio2.resume());
@@ -114,6 +115,36 @@
   function loadScore(){ const n=parseInt(localStorage.getItem(SCORE_KEY)||"0",10); return isNaN(n)?0:n; }
   let score = loadScore();
   function addScore(n){ score += n; try { localStorage.setItem(SCORE_KEY, String(score)); } catch(e){} }
+
+  /* ---- Hidden reset: the Konami code (↑ ↑ ↓ ↓ ← → ← → B A) wipes all saved
+     progress (cleared chapters + score). Works on any screen. The matcher is
+     forgiving: a wrong key restarts the sequence (or starts a fresh one if that
+     key is the first step), so partial attempts never get "stuck". ---------- */
+  const KONAMI = ["ArrowUp","ArrowUp","ArrowDown","ArrowDown",
+                  "ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","KeyB","KeyA"];
+  let konamiBuf = [];
+  function resetProgress(){
+    clearedSet = new Set();
+    score = 0;
+    try { localStorage.removeItem(CLEARED_KEY); localStorage.removeItem(SCORE_KEY); } catch(e){}
+    Audio2.sfx.powerup();
+    flash("Progress reset!");
+  }
+  // Rolling buffer of the last KONAMI.length keys; fires when the tail matches.
+  // This absorbs any stray keys before/within the attempt without getting stuck.
+  // Only armed on the start (MENU), chapter-select (SELECT) and completion (END)
+  // screens, so the combination can't accidentally wipe progress mid-level.
+  function konamiCheck(code){
+    if (state !== S.MENU && state !== S.SELECT && state !== S.END){
+      if (konamiBuf.length) konamiBuf = [];   // forget any partial attempt
+      return;
+    }
+    konamiBuf.push(code);
+    if (konamiBuf.length > KONAMI.length) konamiBuf.shift();
+    if (konamiBuf.length === KONAMI.length && KONAMI.every((k,i)=>k===konamiBuf[i])){
+      konamiBuf = []; resetProgress();
+    }
+  }
 
   let flashMsg = "", flashT = 0;
   function flash(m){ flashMsg = m; flashT = 80; }
