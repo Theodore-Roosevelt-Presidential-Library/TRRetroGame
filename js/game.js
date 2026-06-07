@@ -107,6 +107,14 @@
   }
   function allCleared(){ return CHAPTERS.every(ch => clearedSet.has(ch.id)); }
 
+  /* ---- Score: persists across levels in localStorage ----
+     1 pt / coin, 2 pts / foe defeated, 5 pts / treasure chest opened. */
+  const SCORE_KEY = "tr_score_v1";
+  const PTS = { coin:1, foe:2, chest:5 };
+  function loadScore(){ const n=parseInt(localStorage.getItem(SCORE_KEY)||"0",10); return isNaN(n)?0:n; }
+  let score = loadScore();
+  function addScore(n){ score += n; try { localStorage.setItem(SCORE_KEY, String(score)); } catch(e){} }
+
   let flashMsg = "", flashT = 0;
   function flash(m){ flashMsg = m; flashT = 80; }
   function fsElement(){
@@ -273,13 +281,13 @@
 
     // coins
     for(const c of L.coins){ if(c.got) continue;
-      if(Math.abs(c.x-L.px)<24 && Math.abs(c.y-(L.py-46))<46){ c.got=true; L.coinCount++; Audio2.sfx.coin();
+      if(Math.abs(c.x-L.px)<24 && Math.abs(c.y-(L.py-46))<46){ c.got=true; L.coinCount++; addScore(PTS.coin); Audio2.sfx.coin();
         particles.spawn(c.x-L.cam,c.y,{n:6,color:"#ffd966",spread:2,life:24}); } }
 
     // treasures -> fact popup
     for(const f of L.treasures){ if(f.got) continue;
       if(Math.abs(f.x-L.px)<34 && Math.abs(f.y-(L.py-46))<64){
-        f.got=true; L.factPop=f.txt; L.factT=240; Audio2.sfx.powerup();
+        f.got=true; L.factPop=f.txt; L.factT=240; addScore(PTS.chest); Audio2.sfx.powerup();
         particles.spawn(f.x-L.cam,f.y,{n:18,color:"#ffe08a",spread:3,life:38}); } }
     if(L.factT>0) L.factT--;
 
@@ -294,7 +302,7 @@
       if(dx<32 && Math.abs(L.py-fo.y)<44){
         // stomp if falling onto it
         if(L.vy>0 && prevFeet < fo.y-FOE_H*0.5){
-          fo.dead=true; L.vy=-9; Audio2.sfx.punch();
+          fo.dead=true; L.vy=-9; addScore(PTS.foe); Audio2.sfx.punch();
           particles.spawn(fo.x-L.cam,fo.y-FOE_H*0.5,{n:14,color:"#cde3ff",spread:3,life:30});
         } else { hurt(L,false); }
       }
@@ -385,6 +393,9 @@
     for(let i=0;i<3;i++){ ctx.fillStyle=i<L.hp?"#ff5a5a":"#444"; heartHUD(ctx,W-40-i*26,28,9); }
     ctx.fillStyle="#ffd34d"; ctx.font="bold 14px Trebuchet MS"; ctx.textAlign="right";
     ctx.fillText("◉ "+L.coinCount, W-110, 32);
+    // running total score (persists across levels)
+    ctx.fillStyle="#8be28b"; ctx.font="bold 16px Trebuchet MS"; ctx.textAlign="center";
+    ctx.fillText("SCORE  "+score, W/2, 30);
 
     // fact popup
     if(L.factT>0 && L.factPop){
@@ -680,7 +691,7 @@
     // progress tally from saved completion
     const done = CHAPTERS.filter(c=>clearedSet.has(c.id)).length;
     ctx.font="13px Trebuchet MS"; ctx.fillStyle="#8be28b";
-    ctx.fillText("✓ "+done+" of "+CHAPTERS.length+" chapters completed"+(done===CHAPTERS.length?"  —  reward unlocked!":""), W/2, 66);
+    ctx.fillText("✓ "+done+" of "+CHAPTERS.length+" chapters completed"+(done===CHAPTERS.length?"  —  reward unlocked!":"")+"     ★ Score: "+score, W/2, 66);
     ctx.fillStyle="#cfc3a6"; ctx.font="12px Trebuchet MS";
     ctx.fillText("Tap a chapter to play  ·  (or ← → ↑ ↓ then ENTER)  ·  ESC back", W/2, 84);
     for(let i=0;i<CHAPTERS.length;i++){
@@ -812,7 +823,9 @@
     // tally + prompt
     ctx.textAlign="center";
     ctx.fillStyle="#d9c69a"; ctx.font="14px Trebuchet MS";
-    ctx.fillText("Collected "+recap.got.length+" of "+facts.length+" history treasures", W/2, H*0.82);
+    ctx.fillText("Collected "+recap.got.length+" of "+facts.length+" history treasures", W/2, H*0.80);
+    ctx.fillStyle="#8be28b"; ctx.font="bold 16px Trebuchet MS";
+    ctx.fillText("TOTAL SCORE: "+score, W/2, H*0.84);
     ctx.fillStyle="#ffd966"; ctx.font="bold 15px Trebuchet MS";
     ctx.fillText(cue("Take your time — press  ENTER  when you're ready to continue ►","Take your time — tap to continue ►"), W/2, H*0.88);
   }

@@ -511,6 +511,25 @@ point its button there without other changes.
 
 ---
 
+## Score
+
+A running score accumulates as you play and **persists across levels** (saved in
+`localStorage`, key `tr_score_v1`):
+
+| Action | Points |
+|--------|--------|
+| Coin collected | **1** |
+| Foe defeated (stomped) | **2** |
+| Treasure chest opened | **5** |
+
+The total shows in the level HUD (top-center, "SCORE n"), on each chapter's recap
+screen ("TOTAL SCORE: n"), and in the Chapter Select header ("★ Score: n"). Point
+values live in the `PTS` object near the top of `js/game.js`; `addScore()` writes
+through to `localStorage` on every pickup. To reset a player's score, clear that
+key (or clear site data).
+
+---
+
 ## Known limitations & ideas
 
 - A hand-coded canvas game can't match console *hardware* 3D; the art targets a
